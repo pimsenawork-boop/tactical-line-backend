@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import base64
 from datetime import datetime, timezone, timedelta
@@ -18,8 +19,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
 REPORT_PASSCODE = "phantom2"
-ADMIN_VIEW_PASSCODE = "phantomadmin"
-ADMIN_MASTER_PASSCODE = "phantomadmin1"
+ADMIN_PASSCODE = "phantomadmin"
 
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
@@ -92,11 +92,11 @@ def get_form():
             
             body {
                 margin: 0;
-                padding: 15px;
+                padding: 16px 12px;
                 font-family: 'Chakra Petch', sans-serif;
                 background-color: #060907;
                 background-image: 
-                    linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
+                    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)),
                     url('/bg_new.jpg');
                 background-size: cover;
                 background-position: center center;
@@ -113,14 +113,14 @@ def get_form():
                 width: 100%;
                 max-width: 520px;
                 background-image: 
-                    linear-gradient(rgba(10, 15, 12, 0.8), rgba(6, 10, 8, 0.88)),
+                    linear-gradient(rgba(10, 15, 12, 0.85), rgba(6, 10, 8, 0.92)),
                     url('/bg.jpg');
                 background-size: cover;
                 background-position: center center;
                 border: 1.5px solid var(--border-subtle);
-                border-radius: 14px;
+                border-radius: 16px;
                 box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.15);
-                padding: 24px 22px;
+                padding: 24px 20px;
                 position: relative;
                 overflow: hidden;
             }
@@ -129,8 +129,8 @@ def get_form():
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 85px;
-                height: 5px;
+                width: 90px;
+                height: 4px;
                 background: linear-gradient(90deg, 
                     var(--thai-red) 0% 20%, 
                     #fff 20% 40%, 
@@ -141,7 +141,7 @@ def get_form():
 
             .header-badge {
                 text-align: center;
-                margin-bottom: 16px;
+                margin-bottom: 18px;
                 position: relative;
             }
 
@@ -152,7 +152,7 @@ def get_form():
                 letter-spacing: 2.5px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
@@ -165,7 +165,7 @@ def get_form():
             .grid-2 {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                gap: 10px;
             }
             .form-group {
                 margin-bottom: 12px;
@@ -177,13 +177,12 @@ def get_form():
                 color: #a2b5aa;
                 margin-bottom: 5px;
                 letter-spacing: 0.5px;
-                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             }
 
             input, textarea, select {
                 width: 100%;
                 background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.78), rgba(5, 8, 6, 0.88)),
+                    linear-gradient(rgba(5, 8, 6, 0.8), rgba(5, 8, 6, 0.9)),
                     url('/bg.jpg');
                 background-size: cover;
                 background-position: center;
@@ -199,7 +198,7 @@ def get_form():
                 outline: none;
                 border-color: var(--gold-accent);
                 background-image: 
-                    linear-gradient(rgba(12, 18, 14, 0.7), rgba(12, 18, 14, 0.85)),
+                    linear-gradient(rgba(12, 18, 14, 0.75), rgba(12, 18, 14, 0.9)),
                     url('/bg.jpg');
                 box-shadow: 0 0 12px var(--gold-glow);
             }
@@ -207,7 +206,7 @@ def get_form():
                 font-family: 'Share Tech Mono', monospace;
                 color: #7ee0ad;
                 background-image: 
-                    linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.8)),
+                    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.85)),
                     url('/bg.jpg');
                 border-color: rgba(255, 255, 255, 0.08);
             }
@@ -217,26 +216,27 @@ def get_form():
                 font-weight: 700;
                 letter-spacing: 1.2px;
                 background-image: 
-                    linear-gradient(rgba(0, 20, 15, 0.7), rgba(0, 15, 10, 0.85)),
+                    linear-gradient(rgba(0, 20, 15, 0.75), rgba(0, 15, 10, 0.9)),
                     url('/bg.jpg');
                 border-color: rgba(0, 255, 204, 0.35);
             }
             textarea { resize: vertical; min-height: 55px; }
 
+            /* กลุ่มปุ่มเครื่องมือ GPS และแผนที่ */
             .gps-tools {
-                display: flex;
-                gap: 6px;
+                display: grid;
+                grid-template-columns: 1fr 1.2fr 1fr;
+                gap: 8px;
                 margin-top: 6px;
             }
             .tool-btn {
-                flex: 1;
-                background: rgba(212, 175, 55, 0.15);
-                border: 1px solid rgba(212, 175, 55, 0.4);
+                background: linear-gradient(180deg, rgba(30, 42, 35, 0.9) 0%, rgba(15, 22, 18, 0.9) 100%);
+                border: 1px solid rgba(212, 175, 55, 0.35);
                 color: var(--gold-accent);
-                padding: 7px 8px;
+                padding: 9px 6px;
                 font-size: 12px;
                 font-weight: 600;
-                border-radius: 6px;
+                border-radius: 8px;
                 cursor: pointer;
                 transition: 0.2s;
                 text-align: center;
@@ -245,332 +245,139 @@ def get_form():
                 justify-content: center;
                 gap: 4px;
             }
+            .tool-btn:hover {
+                border-color: var(--gold-accent);
+                box-shadow: 0 0 10px var(--gold-glow);
+                color: #fff;
+            }
             .tool-btn:active {
-                transform: scale(0.97);
-                background: rgba(212, 175, 55, 0.3);
+                transform: scale(0.96);
+            }
+            .tool-btn.highlight {
+                border-color: var(--gold-accent);
+                background: linear-gradient(180deg, rgba(212, 175, 55, 0.25) 0%, rgba(160, 130, 30, 0.2) 100%);
             }
 
-            /* --- MODERN MAP MODAL --- */
+            /* --- MAP MODAL --- */
             #map-modal {
                 display: none;
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0, 0, 0, 0.75);
+                background: rgba(0, 0, 0, 0.8);
                 backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
                 z-index: 10000;
                 opacity: 0;
-                transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: opacity 0.25s ease;
             }
-            #map-modal.show {
-                display: flex;
-                opacity: 1;
-            }
+            #map-modal.show { display: flex; opacity: 1; }
             .map-app-container {
                 position: relative;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-            }
-            #tactical-map {
-                position: absolute;
-                top: 0; left: 0; right: 0; bottom: 0;
                 width: 100%; height: 100%;
-                z-index: 1;
+                display: flex; flex-direction: column;
             }
+            #tactical-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: 1; }
 
             .map-top-bar {
                 position: absolute;
-                top: 15px;
-                left: 15px;
-                right: 15px;
+                top: 15px; left: 15px; right: 15px;
                 z-index: 1000;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
+                display: flex; flex-direction: column; gap: 8px;
             }
-            .map-top-row {
-                display: flex;
-                gap: 8px;
-            }
+            .map-top-row { display: flex; gap: 8px; }
             .search-box-wrapper {
                 flex: 1;
-                background: rgba(18, 24, 20, 0.92);
+                background: rgba(18, 24, 20, 0.94);
                 backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
                 border-radius: 25px;
-                display: flex;
-                align-items: center;
-                padding: 4px 14px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+                display: flex; align-items: center; padding: 4px 14px;
             }
-            .search-box-wrapper input {
-                background: transparent;
-                border: none;
-                box-shadow: none;
-                padding: 6px 8px;
-                font-size: 14px;
-                color: #fff;
-            }
-            .search-box-wrapper input:focus {
-                background: transparent;
-                box-shadow: none;
-                border: none;
-            }
+            .search-box-wrapper input { background: transparent; border: none; padding: 6px 8px; font-size: 14px; color: #fff; }
+            .search-box-wrapper input:focus { background: transparent; border: none; }
             .btn-circle-icon {
-                width: 44px;
-                height: 44px;
-                border-radius: 50%;
-                background: rgba(18, 24, 20, 0.92);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
+                width: 44px; height: 44px; border-radius: 50%;
+                background: rgba(18, 24, 20, 0.94);
                 border: 1px solid rgba(212, 175, 55, 0.4);
-                color: #fff;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 16px;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-                transition: 0.2s;
+                color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;
             }
-            .btn-circle-icon:active { transform: scale(0.92); }
 
             .provider-selector-bar {
-                background: rgba(18, 24, 20, 0.92);
-                backdrop-filter: blur(12px);
+                background: rgba(18, 24, 20, 0.94);
                 border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 10px;
-                padding: 4px 10px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+                border-radius: 10px; padding: 4px 10px;
             }
-            .provider-selector-bar select {
-                background: transparent;
-                border: none;
-                color: var(--gold-accent);
-                font-size: 12.5px;
-                font-weight: 600;
-                padding: 4px;
-                cursor: pointer;
-            }
+            .provider-selector-bar select { background: transparent; border: none; color: var(--gold-accent); font-size: 12.5px; font-weight: 600; }
 
             .map-floating-controls {
-                position: absolute;
-                right: 15px;
-                bottom: 165px;
-                z-index: 1000;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
+                position: absolute; right: 15px; bottom: 180px; z-index: 1000;
             }
-
             .center-pin-marker {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -100%);
-                z-index: 100;
-                pointer-events: none;
-                transition: transform 0.15s ease-out;
-                text-align: center;
+                position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);
+                z-index: 100; pointer-events: none; text-align: center;
             }
-            .center-pin-marker.dragging {
-                transform: translate(-50%, -120%) scale(1.1);
-            }
-            .pin-emoji-badge {
-                font-size: 32px;
-                filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
-            }
+            .center-pin-marker.dragging { transform: translate(-50%, -120%) scale(1.1); }
+            .pin-emoji-badge { font-size: 34px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8)); }
             .pin-shadow {
-                position: absolute;
-                bottom: -2px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 14px;
-                height: 5px;
-                background: rgba(0,0,0,0.6);
-                border-radius: 50%;
-                filter: blur(1px);
+                position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+                width: 14px; height: 5px; background: rgba(0,0,0,0.6); border-radius: 50%; filter: blur(1px);
             }
 
-            /* แผงควบคุมด้านล่างพร้อมตั้งค่ารัศมีอันตราย */
             .map-bottom-sheet {
-                position: absolute;
-                bottom: 15px;
-                left: 15px;
-                right: 15px;
-                z-index: 1000;
-                background: rgba(12, 18, 14, 0.94);
+                position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 1000;
+                background: rgba(12, 18, 14, 0.95);
                 backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
                 border: 1.5px solid var(--border-subtle);
-                border-radius: 16px;
-                padding: 12px 16px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
+                border-radius: 16px; padding: 14px 16px;
+                display: flex; flex-direction: column; gap: 10px;
             }
-            .sheet-row-top {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 10px;
-            }
+            .sheet-row-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
             .radius-control-bar {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                border-top: 1px solid rgba(212, 175, 55, 0.2);
-                padding-top: 8px;
+                display: flex; align-items: center; gap: 8px;
+                border-top: 1px solid rgba(212, 175, 55, 0.2); padding-top: 8px;
             }
-            .radius-control-bar label {
-                font-size: 11.5px;
-                color: #ff6b6b;
-                font-weight: 700;
-                margin: 0;
-                white-space: nowrap;
-            }
+            .radius-control-bar label { font-size: 11.5px; color: #ff6b6b; font-weight: 700; margin: 0; white-space: nowrap; }
             .radius-control-bar select {
-                background: rgba(0,0,0,0.5);
-                border: 1px solid rgba(255, 107, 107, 0.4);
-                color: #ff6b6b;
-                padding: 4px 8px;
-                font-size: 12px;
-                font-weight: bold;
-                border-radius: 6px;
-                flex: 1;
+                background: rgba(0,0,0,0.6); border: 1px solid rgba(255, 107, 107, 0.4);
+                color: #ff6b6b; padding: 5px 8px; font-size: 12px; font-weight: bold; border-radius: 6px; flex: 1;
             }
 
-            .coord-info-title {
-                font-size: 11px;
-                color: #8da196;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }
-            .coord-info-val {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 13.5px;
-                font-weight: 700;
-                color: #7ee0ad;
-                margin-top: 2px;
-            }
-            .coord-mgrs-val {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 13.5px;
-                font-weight: 700;
-                color: var(--mgrs-green);
-                margin-top: 1px;
-            }
+            .coord-info-title { font-size: 11px; color: #8da196; text-transform: uppercase; letter-spacing: 1px; }
+            .coord-info-val { font-family: 'Share Tech Mono', monospace; font-size: 13.5px; font-weight: 700; color: #7ee0ad; margin-top: 2px; }
+            .coord-mgrs-val { font-family: 'Share Tech Mono', monospace; font-size: 13.5px; font-weight: 700; color: var(--mgrs-green); margin-top: 1px; }
             .btn-confirm-pin {
                 background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
                 border: 1px solid var(--gold-accent);
-                color: #000;
-                font-weight: 700;
-                font-size: 13px;
-                padding: 11px 18px;
-                border-radius: 10px;
-                cursor: pointer;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
-                white-space: nowrap;
+                color: #000; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer; text-transform: uppercase;
             }
-            .btn-confirm-pin:active { transform: scale(0.95); }
 
-            /* 5 ช่องสี่เหลี่ยมแนบภาพ */
-            .img-grid {
-                display: grid;
-                grid-template-columns: repeat(5, 1fr);
-                gap: 8px;
-                margin-top: 6px;
-            }
+            .img-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 6px; }
             .img-slot {
                 aspect-ratio: 1 / 1;
                 background-image: 
                     linear-gradient(rgba(5, 8, 6, 0.65), rgba(5, 8, 6, 0.75)),
                     url('/bg.jpg');
-                background-size: cover;
-                background-position: center;
+                background-size: cover; background-position: center;
                 border: 1px dashed rgba(212, 175, 55, 0.4);
-                border-radius: 7px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                overflow: hidden;
-                position: relative;
-                transition: 0.2s;
+                border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative;
             }
-            .img-slot:hover {
-                border-color: var(--gold-accent);
-                box-shadow: 0 0 10px var(--gold-glow);
-            }
-            .img-slot img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-            .img-slot span {
-                font-size: 20px;
-                color: var(--gold-accent);
-            }
+            .img-slot:hover { border-color: var(--gold-accent); box-shadow: 0 0 10px var(--gold-glow); }
+            .img-slot img { width: 100%; height: 100%; object-fit: cover; }
+            .img-slot span { font-size: 20px; color: var(--gold-accent); }
             .btn-remove-img {
-                position: absolute;
-                top: 2px;
-                right: 2px;
-                background: rgba(165, 28, 36, 0.88);
-                color: #fff;
-                border: 1px solid #fff;
-                border-radius: 50%;
-                width: 18px;
-                height: 18px;
-                font-size: 11px;
-                line-height: 16px;
-                text-align: center;
-                cursor: pointer;
-                display: none;
-                z-index: 10;
+                position: absolute; top: 2px; right: 2px; background: rgba(165, 28, 36, 0.88);
+                color: #fff; border: 1px solid #fff; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; line-height: 16px; text-align: center; cursor: pointer; display: none; z-index: 10;
             }
             .img-slot.has-img .btn-remove-img { display: block; }
 
             .btn-action {
                 width: 100%;
-                background: linear-gradient(180deg, #a88424 0%, #614a10 100%);
+                background: linear-gradient(180deg, #d4af37 0%, #7d6017 100%);
                 border: 1px solid var(--gold-accent);
-                color: #fff;
-                padding: 12px;
-                font-size: 15px;
-                font-weight: 700;
-                letter-spacing: 2px;
-                cursor: pointer;
-                border-radius: 8px;
-                margin-top: 15px;
-                text-transform: uppercase;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-                transition: all 0.25s ease;
+                color: #000; padding: 13px; font-size: 15px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 10px; margin-top: 15px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); transition: all 0.25s ease;
             }
-            .btn-action:hover {
-                background: linear-gradient(180deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 15px var(--gold-glow);
-                transform: translateY(-1px);
-            }
-            .btn-action:disabled {
-                background: #252826;
-                border-color: #3b403d;
-                color: #6a736e;
-                cursor: not-allowed;
-                box-shadow: none;
-                transform: none;
-            }
-            .status-tag {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 11px;
-                color: #8da196;
-                margin-top: 4px;
-            }
+            .btn-action:hover { background: linear-gradient(180deg, #f5d77f 0%, #a88424 100%); box-shadow: 0 0 15px var(--gold-glow); transform: translateY(-1px); }
+            .btn-action:disabled { background: #252826; border-color: #3b403d; color: #6a736e; cursor: not-allowed; box-shadow: none; transform: none; }
+            .status-tag { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #8da196; margin-top: 4px; }
         </style>
     </head>
     <body>
@@ -585,7 +392,7 @@ def get_form():
             <div class="grid-2">
                 <div class="form-group">
                     <label>🔑 รหัสผ่าน (Passcode):</label>
-                    <input type="password" id="passcode" placeholder="กรอกรหัส">
+                    <input type="password" id="passcode" placeholder="กรอกรหัสส่งรายงาน">
                 </div>
                 <div class="form-group">
                     <label>1. สถานการณ์:</label>
@@ -634,14 +441,16 @@ def get_form():
                     <option value="500">500 เมตร (รัศมีควบคุมพื้นที่ / ปิดล้อม)</option>
                     <option value="1000">1,000 เมตร (1 กม. - รัศมีลาดตระเวน)</option>
                     <option value="2000">2,000 เมตร (2 กม. - รัศมีปืนใหญ่/ตรวจการณ์)</option>
+                    <option value="5000">5,000 เมตร (5 กม. - ขอบเขตยุทธวิธีระดับกองพัน)</option>
+                    <option value="10000">10,000 เมตร (10 กม. - ขอบเขตยุทธศาสตร์สูงสุด)</option>
                 </select>
             </div>
 
             <div class="form-group" style="margin-top: -4px;">
                 <div class="gps-tools">
                     <button type="button" class="tool-btn" onclick="getAutoGPS()">🛰️ AUTO GPS</button>
-                    <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่ (Multi-Map)</button>
-                    <button type="button" class="tool-btn" onclick="window.open('/map', '_blank')">🌐 แผนที่รวมยุทธศาสตร์</button>
+                    <button type="button" class="tool-btn highlight" onclick="openMapModal()">🗺️ ปักหมุดแผนที่</button>
+                    <button type="button" class="tool-btn" onclick="window.open('/map', '_blank')">🌐 แผนที่รวม</button>
                 </div>
                 <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
             </div>
@@ -672,7 +481,6 @@ def get_form():
             <button id="submit_btn" class="btn-action" onclick="submitReport()">ส่งรายงานยุทธวิธี</button>
         </div>
 
-        <!-- หน้าต่าง Google Maps Mode พร้อมวงกลมรัศมีอันตราย -->
         <div id="map-modal">
             <div class="map-app-container">
                 <div id="tactical-map"></div>
@@ -726,6 +534,8 @@ def get_form():
                             <option value="500">500 เมตร</option>
                             <option value="1000">1,000 เมตร (1 กม.)</option>
                             <option value="2000">2,000 เมตร (2 กม.)</option>
+                            <option value="5000">5,000 เมตร (5 กม.)</option>
+                            <option value="10000">10,000 เมตร (10 กม.)</option>
                         </select>
                     </div>
                 </div>
@@ -839,7 +649,7 @@ def get_form():
                         radius: r,
                         color: '#ff3b30',
                         fillColor: '#ff3b30',
-                        fillOpacity: 0.25,
+                        fillOpacity: 0.22,
                         weight: 2,
                         dashArray: '4, 6'
                     }).addTo(map);
@@ -1050,7 +860,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD พร้อมระบบแก้/ลบ/ดูไลน์สำหรับ phantomadmin1) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -1077,7 +887,7 @@ def get_map_dashboard():
             #auth-gate {
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
-                background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('/bg_new.jpg') center/cover;
+                background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.96)), url('/bg_new.jpg') center/cover;
                 z-index: 99999;
                 display: flex;
                 justify-content: center;
@@ -1086,18 +896,18 @@ def get_map_dashboard():
             }
             .gate-box {
                 width: 100%;
-                max-width: 440px;
-                background: rgba(10, 15, 12, 0.94);
+                max-width: 420px;
+                background: rgba(10, 15, 12, 0.95);
                 border: 1.5px solid var(--gold-accent);
-                border-radius: 14px;
-                padding: 30px 24px;
-                box-shadow: 0 0 35px rgba(212, 175, 55, 0.25);
+                border-radius: 16px;
+                padding: 34px 26px;
+                box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
                 text-align: center;
-                backdrop-filter: blur(12px);
+                backdrop-filter: blur(14px);
             }
             .gate-title {
                 color: var(--gold-accent);
-                font-size: 20px;
+                font-size: 21px;
                 font-weight: 700;
                 letter-spacing: 2px;
                 margin-bottom: 6px;
@@ -1106,25 +916,26 @@ def get_map_dashboard():
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 11px;
                 color: #8da196;
-                margin-bottom: 20px;
+                margin-bottom: 24px;
                 letter-spacing: 1px;
             }
             .gate-input {
                 width: 100%;
-                background: rgba(5, 8, 6, 0.85);
-                border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 8px;
+                background: rgba(5, 8, 6, 0.9);
+                border: 1.5px solid rgba(212, 175, 55, 0.4);
+                border-radius: 10px;
                 color: #fff;
-                padding: 12px;
-                font-size: 16px;
+                padding: 13px;
+                font-size: 18px;
                 text-align: center;
                 font-family: 'Chakra Petch', sans-serif;
-                margin-bottom: 16px;
+                margin-bottom: 18px;
                 outline: none;
+                letter-spacing: 3px;
             }
             .gate-input:focus {
                 border-color: var(--gold-accent);
-                box-shadow: 0 0 12px var(--gold-glow);
+                box-shadow: 0 0 15px var(--gold-glow);
             }
             .gate-btn {
                 width: 100%;
@@ -1133,8 +944,8 @@ def get_map_dashboard():
                 color: #000;
                 font-weight: 700;
                 font-size: 14px;
-                padding: 12px;
-                border-radius: 8px;
+                padding: 13px;
+                border-radius: 10px;
                 cursor: pointer;
                 text-transform: uppercase;
                 letter-spacing: 1.5px;
@@ -1147,7 +958,7 @@ def get_map_dashboard():
                 top: 15px;
                 left: 15px;
                 z-index: 1000;
-                background: rgba(10, 15, 12, 0.92);
+                background: rgba(10, 15, 12, 0.94);
                 border: 1.5px solid #d4af37;
                 border-radius: 12px;
                 padding: 10px 18px;
@@ -1162,7 +973,7 @@ def get_map_dashboard():
                 top: 15px;
                 right: 15px;
                 z-index: 1000;
-                background: rgba(10, 15, 12, 0.92);
+                background: rgba(10, 15, 12, 0.94);
                 border: 1.5px solid #d4af37;
                 border-radius: 10px;
                 padding: 6px 12px;
@@ -1214,33 +1025,35 @@ def get_map_dashboard():
             }
             .admin-tools {
                 display: flex;
-                gap: 6px;
+                gap: 8px;
                 margin-top: 10px;
                 padding-top: 8px;
                 border-top: 1px solid rgba(212,175,55,0.4);
             }
             .btn-admin-act {
                 flex: 1;
-                padding: 6px 8px;
-                font-size: 11px;
+                padding: 7px 10px;
+                font-size: 11.5px;
                 font-weight: 700;
                 border-radius: 6px;
                 cursor: pointer;
                 border: 1px solid;
                 text-align: center;
+                transition: 0.2s;
             }
             .btn-edit { background: rgba(212,175,55,0.2); border-color: var(--gold-accent); color: var(--gold-accent); }
+            .btn-edit:hover { background: rgba(212,175,55,0.4); color: #fff; }
             .btn-del { background: rgba(229,57,53,0.2); border-color: #e53935; color: #ff6b6b; }
+            .btn-del:hover { background: rgba(229,57,53,0.4); color: #fff; }
         </style>
     </head>
     <body>
-        <!-- หน้า Auth Gate -->
         <div id="auth-gate">
             <div class="gate-box">
                 <div style="font-size: 38px; margin-bottom: 8px;">🔒</div>
                 <div class="gate-title">RESTRICTED ACCESS</div>
                 <div class="gate-subtitle">TACTICAL RADAR OPERATIONS // AUTH REQUIRED</div>
-                <input type="password" id="admin_key_input" class="gate-input" placeholder="กรอกรหัสผ่าน (phantomadmin หรือ phantomadmin1)" onkeypress="if(event.key==='Enter') verifyAdminKey()">
+                <input type="password" id="admin_key_input" class="gate-input" autofocus onkeypress="if(event.key==='Enter') verifyAdminKey()">
                 <button type="button" class="gate-btn" onclick="verifyAdminKey()">เข้าสู่ศูนย์แผนที่ยุทธศาสตร์</button>
             </div>
         </div>
@@ -1264,7 +1077,6 @@ def get_map_dashboard():
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             let currentAdminKey = "";
-            let isMasterAdmin = false;
             let currentReportsData = [];
 
             const layers = {
@@ -1288,7 +1100,7 @@ def get_map_dashboard():
 
             async function verifyAdminKey() {
                 const key = document.getElementById('admin_key_input').value.trim();
-                if (!key) { alert('กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน'); return; }
+                if (!key) { alert('กรุณากรอกรหัสผ่าน'); return; }
 
                 try {
                     const res = await fetch(`/api/get-all-reports?passcode=${encodeURIComponent(key)}`);
@@ -1299,26 +1111,25 @@ def get_map_dashboard():
                     const data = await res.json();
                     
                     currentAdminKey = key;
-                    isMasterAdmin = (key === "phantomadmin1");
 
                     document.getElementById('auth-gate').style.display = 'none';
                     map.invalidateSize();
                     
                     renderMapData(data);
                 } catch (e) {
-                    alert('⚠️ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์การเข้าถึง');
+                    alert('⚠️ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
                 }
             }
 
             function renderMapData(data) {
                 currentReportsData = data;
-                // ล้างเลเยอร์เก่า
+                
                 map.eachLayer((layer) => {
                     if (layer !== activeLayer) map.removeLayer(layer);
                 });
 
                 if (data && data.length > 0) {
-                    document.getElementById('total_reports').innerText = `ตรวจพบรายงานทั้งหมด: ${data.length} จุดยุทธวิธี ${isMasterAdmin ? '⭐ [MASTER ADMIN]' : ''}`;
+                    document.getElementById('total_reports').innerText = `ตรวจพบรายงานทั้งหมด: ${data.length} จุดยุทธวิธี`;
                     const group = [];
 
                     data.forEach(item => {
@@ -1328,7 +1139,6 @@ def get_map_dashboard():
                             const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี: (\\S+)/);
                             if (match) emoji = match[1];
 
-                            // วาดวงกลมรัศมีอันตราย (Danger Radius)
                             const rMatch = detail.match(/⭕ รัศมีอันตราย: (\\d+) เมตร/);
                             if (rMatch) {
                                 const radiusMeters = parseInt(rMatch[1]);
@@ -1358,30 +1168,18 @@ def get_map_dashboard():
                                 imgHtml = `<a href="${item.image_url}" target="_blank"><img src="${item.image_url}" class="popup-img" title="คลิกเพื่อดูรูปขนาดเต็ม"></a>`;
                             }
 
-                            // ข้อมูลผู้ส่ง (เฉพาะ phantomadmin1)
-                            let lineSenderHtml = "";
-                            let adminActionsHtml = "";
-                            if (isMasterAdmin) {
-                                lineSenderHtml = `
-                                    <div class="sitrep-item" style="background:rgba(0, 255, 204, 0.1); padding:4px 6px; border-radius:4px;">
-                                        <span class="sitrep-label" style="color:#00ffcc;">👤 ผู้ส่ง (LINE ID / User):</span><br>
-                                        <span style="font-family:'Share Tech Mono'; font-weight:bold; color:#fff;">${item.user_name || item.user_id || 'PHANTOM_OPERATOR'}</span>
-                                    </div>
-                                `;
-                                adminActionsHtml = `
-                                    <div class="admin-tools">
-                                        <button class="btn-admin-act btn-edit" onclick="editReportPrompt(${item.id})">✏️ แก้ไขข้อมูล</button>
-                                        <button class="btn-admin-act btn-del" onclick="deleteReportPrompt(${item.id})">🗑️ ลบรายงาน</button>
-                                    </div>
-                                `;
-                            }
+                            const adminActionsHtml = `
+                                <div class="admin-tools">
+                                    <button class="btn-admin-act btn-edit" onclick="editReportPrompt(${item.id})">✏️ แก้ไข</button>
+                                    <button class="btn-admin-act btn-del" onclick="deleteReportPrompt(${item.id})">🗑️ ลบ</button>
+                                </div>
+                            `;
 
                             marker.bindPopup(`
                                 <div style="min-width: 250px; max-width: 320px;" class="sitrep-box">
                                     <div style="font-size:15px; font-weight:bold; color:#d4af37; margin-bottom:8px; border-bottom:1px solid #d4af37; padding-bottom:4px;">
                                         ${emoji} รายงานสถานการณ์ยุทธวิธี
                                     </div>
-                                    ${lineSenderHtml}
                                     <div style="white-space: pre-line; color:#e0e6ed; line-height:1.4;">${detail}</div>
                                     ${imgHtml}
                                     ${adminActionsHtml}
@@ -1399,7 +1197,6 @@ def get_map_dashboard():
                 }
             }
 
-            // ฟังก์ชันแก้ไขข้อมูลรายงาน (สำหรับ phantomadmin1)
             async function editReportPrompt(reportId) {
                 const report = currentReportsData.find(r => r.id === reportId);
                 if (!report) return;
@@ -1436,7 +1233,6 @@ def get_map_dashboard():
                 }
             }
 
-            // ฟังก์ชันลบรายงาน (สำหรับ phantomadmin1)
             async function deleteReportPrompt(reportId) {
                 if (!confirm(`⚠️ ยืนยันที่จะลบจุดรายงาน ID: ${reportId} หรือไม่?`)) return;
 
@@ -1464,11 +1260,11 @@ def get_map_dashboard():
     </html>
     """
 
-# API สำหรับดึงรายงานทั้งหมด (รองรับ phantomadmin และ phantomadmin1)
+# API สำหรับดึงรายงานทั้งหมด
 @app.get("/api/get-all-reports")
 def get_all_reports(passcode: str = ""):
-    if passcode not in [ADMIN_VIEW_PASSCODE, ADMIN_MASTER_PASSCODE]:
-        raise HTTPException(status_code=403, detail="สิทธิ์การเข้าถึงไม่ถูกต้อง กรุณากรอกรหัสผ่านความปลอดภัย")
+    if passcode != ADMIN_PASSCODE:
+        raise HTTPException(status_code=403, detail="สิทธิ์การเข้าถึงไม่ถูกต้อง")
 
     try:
         response = supabase.table("reports").select("*").order("created_at", desc=True).limit(100).execute()
@@ -1477,11 +1273,11 @@ def get_all_reports(passcode: str = ""):
         print(f"Fetch all error: {e}")
         return []
 
-# API แก้ไขรายงาน (เฉพาะ phantomadmin1)
+# API แก้ไขรายงาน
 @app.post("/api/update-report")
 def update_report(payload: UpdateReportPayload):
-    if payload.passcode != ADMIN_MASTER_PASSCODE:
-        raise HTTPException(status_code=403, detail="ต้องใช้สิทธิ์ Master Admin (phantomadmin1) เท่านั้น")
+    if payload.passcode != ADMIN_PASSCODE:
+        raise HTTPException(status_code=403, detail="รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง")
 
     try:
         res = supabase.table("reports").select("*").eq("id", payload.report_id).execute()
@@ -1489,8 +1285,6 @@ def update_report(payload: UpdateReportPayload):
             raise HTTPException(status_code=404, detail="ไม่พบรายงาน")
 
         old_detail = res.data[0].get("detail", "")
-        # แทนที่บรรทัดสถานการณ์ เหตุการณ์ การปฏิบัติ
-        import re
         new_detail = re.sub(r"1\. สถานการณ์: .*", f"1. สถานการณ์: {payload.situation}", old_detail)
         new_detail = re.sub(r"3\. เหตุการณ์: .*", f"3. เหตุการณ์: {payload.incident}", new_detail)
         new_detail = re.sub(r"5\. การปฏิบัติ: .*", f"5. การปฏิบัติ: {payload.action}", new_detail)
@@ -1501,11 +1295,11 @@ def update_report(payload: UpdateReportPayload):
         print(f"Update error: {e}")
         raise HTTPException(status_code=500, detail="ไม่สามารถอัปเดตข้อมูลได้")
 
-# API ลบรายงาน (เฉพาะ phantomadmin1)
+# API ลบรายงาน
 @app.post("/api/delete-report")
 def delete_report(payload: DeleteReportPayload):
-    if payload.passcode != ADMIN_MASTER_PASSCODE:
-        raise HTTPException(status_code=403, detail="ต้องใช้สิทธิ์ Master Admin (phantomadmin1) เท่านั้น")
+    if payload.passcode != ADMIN_PASSCODE:
+        raise HTTPException(status_code=403, detail="รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง")
 
     try:
         supabase.table("reports").delete().eq("id", payload.report_id).execute()
