@@ -20,6 +20,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
 REPORT_PASSCODE = "phantom2"
 ADMIN_PASSCODE = "phantomadmin"
+EDIT_PASSCODE = "wisarut"
 
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
@@ -222,7 +223,6 @@ def get_form():
             }
             textarea { resize: vertical; min-height: 55px; }
 
-            /* กลุ่มปุ่มเครื่องมือ GPS และแผนที่ */
             .gps-tools {
                 display: grid;
                 grid-template-columns: 1fr 1.2fr 1fr;
@@ -250,9 +250,7 @@ def get_form():
                 box-shadow: 0 0 10px var(--gold-glow);
                 color: #fff;
             }
-            .tool-btn:active {
-                transform: scale(0.96);
-            }
+            .tool-btn:active { transform: scale(0.96); }
             .tool-btn.highlight {
                 border-color: var(--gold-accent);
                 background: linear-gradient(180deg, rgba(212, 175, 55, 0.25) 0%, rgba(160, 130, 30, 0.2) 100%);
@@ -316,10 +314,11 @@ def get_form():
                 z-index: 100; pointer-events: none; text-align: center;
             }
             .center-pin-marker.dragging { transform: translate(-50%, -120%) scale(1.1); }
-            .pin-emoji-badge { font-size: 34px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8)); }
+            /* ปรับขนาดอิโมจิตอนเล็งปักหมุดให้เล็กลงกะทัดรัด (24px) */
+            .pin-emoji-badge { font-size: 24px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
             .pin-shadow {
                 position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
-                width: 14px; height: 5px; background: rgba(0,0,0,0.6); border-radius: 50%; filter: blur(1px);
+                width: 12px; height: 4px; background: rgba(0,0,0,0.6); border-radius: 50%; filter: blur(1px);
             }
 
             .map-bottom-sheet {
@@ -395,18 +394,18 @@ def get_form():
                     <input type="password" id="passcode" placeholder="กรอกรหัสส่งรายงาน">
                 </div>
                 <div class="form-group">
-                    <label>1. สถานการณ์:</label>
+                    <label>สถานการณ์:</label>
                     <input type="text" id="situation" placeholder="เช่น การปะทะ / ตรวจพบ">
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>2. เวลาบันทึก (AUTO):</label>
+                    <label>เวลาบันทึก (AUTO):</label>
                     <input type="text" id="time_display" class="readonly-input" readonly>
                 </div>
                 <div class="form-group">
-                    <label>🎖️ สัญลักษณ์ยุทธวิธี:</label>
+                    <label>สัญลักษณ์ยุทธวิธี:</label>
                     <select id="tactical_icon" onchange="updatePinIconPreview()">
                         <option value="🎯 ตรวจพบเป้าหมาย">🎯 ตรวจพบเป้าหมาย (Target)</option>
                         <option value="⚔️ จุดปะทะ/ใช้อาวุธ">⚔️ จุดปะทะ (Contact)</option>
@@ -422,17 +421,17 @@ def get_form():
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>3.1 พิกัด GPS (LAT, LON):</label>
+                    <label>พิกัด GPS (LAT, LON):</label>
                     <input type="text" id="coords_display" placeholder="14.xxxxxx, 102.xxxxxx" onchange="manualCoordsInput(this.value)">
                 </div>
                 <div class="form-group">
-                    <label>3.2 พิกัดทหาร (MGRS):</label>
+                    <label>พิกัดทหาร (MGRS):</label>
                     <input type="text" id="mgrs_display" class="mgrs-input" readonly placeholder="คำนวณอัตโนมัติ...">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>⭕ รัศมีอันตราย / รัศมีปฏิบัติการ:</label>
+                <label>รัศมีอันตราย / รัศมีปฏิบัติการ:</label>
                 <select id="danger_radius">
                     <option value="0">0 ม. (ไม่ระบุรัศมี / จุดเฉพาะ)</option>
                     <option value="50">50 เมตร (รัศมีประชิด / ระเบิดขว้าง)</option>
@@ -456,12 +455,12 @@ def get_form():
             </div>
 
             <div class="form-group">
-                <label>4. เหตุการณ์:</label>
+                <label>เหตุการณ์:</label>
                 <textarea id="incident" rows="2" placeholder="ระบุรายละเอียดสิ่งที่ตรวจพบ / รูปแบบเหตุการณ์"></textarea>
             </div>
 
             <div class="form-group">
-                <label>5. การปฏิบัติ:</label>
+                <label>การปฏิบัติ:</label>
                 <textarea id="action" rows="2" placeholder="ระบุการวางกำลัง / การใช้อาวุธ / การควบคุมพื้นที่"></textarea>
             </div>
 
@@ -876,7 +875,7 @@ def get_map_dashboard():
             :root {
                 --gold-accent: #d4af37;
                 --gold-glow: rgba(212, 175, 55, 0.45);
-                --thai-red: #a51c24;
+                --thai-red: #ff3838;
                 --mgrs-green: #00ffcc;
             }
             * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -990,6 +989,63 @@ def get_map_dashboard():
                 outline: none;
             }
 
+            /* แถบกรองอิโมจิสัญลักษณ์ยุทธวิธี */
+            .tactical-filter-bar {
+                position: absolute;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                background: rgba(10, 16, 13, 0.95);
+                backdrop-filter: blur(14px);
+                border: 1.5px solid rgba(212, 175, 55, 0.4);
+                border-radius: 35px;
+                padding: 6px 12px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+                max-width: 95vw;
+                overflow-x: auto;
+            }
+            .tactical-filter-bar::-webkit-scrollbar { display: none; }
+            
+            .filter-chip {
+                background: rgba(25, 38, 30, 0.85);
+                border: 1px solid rgba(212, 175, 55, 0.3);
+                color: #cfd8dc;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 6px 12px;
+                border-radius: 20px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                white-space: nowrap;
+                transition: 0.2s;
+            }
+            .filter-chip:hover {
+                border-color: var(--gold-accent);
+                color: #fff;
+                transform: translateY(-2px);
+            }
+            .filter-chip.active {
+                background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
+                border-color: #fff;
+                color: #000;
+                font-weight: 700;
+                box-shadow: 0 0 12px var(--gold-glow);
+            }
+            .filter-count {
+                background: rgba(0, 0, 0, 0.4);
+                color: inherit;
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 10px;
+                padding: 1px 6px;
+                border-radius: 10px;
+            }
+
             .leaflet-popup-content-wrapper {
                 background: rgba(10, 15, 12, 0.96) !important;
                 border: 1.5px solid #d4af37 !important;
@@ -1002,11 +1058,13 @@ def get_map_dashboard():
             .leaflet-popup-tip { background: #d4af37 !important; }
             .popup-img { width: 100%; border-radius: 6px; margin-top: 8px; border: 1px solid rgba(212,175,55,0.4); max-height: 180px; object-fit: cover; }
             
+            /* ปรับขนาดอิโมจิหมุดบนแผนที่รวมยุทธศาสตร์ให้เล็กลงกะทัดรัด (20px) */
             .custom-tactical-pin {
-                font-size: 28px;
+                font-size: 20px;
                 text-align: center;
-                filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8));
+                filter: drop-shadow(0 2px 5px rgba(0,0,0,0.85));
                 cursor: pointer;
+                line-height: 20px;
             }
 
             .sitrep-box {
@@ -1019,10 +1077,29 @@ def get_map_dashboard():
                 padding-bottom: 4px;
                 border-bottom: 1px dashed rgba(212,175,55,0.2);
             }
-            .sitrep-label {
+            
+            .sitrep-label-red {
                 font-weight: 700;
-                color: var(--gold-accent);
+                color: var(--thai-red);
+                text-shadow: 0 0 6px rgba(255, 56, 56, 0.4);
             }
+
+            .edit-box-input {
+                width: 100%;
+                background: rgba(5, 8, 6, 0.9);
+                border: 1px solid var(--gold-accent);
+                border-radius: 5px;
+                color: #fff;
+                padding: 6px 8px;
+                font-family: 'Chakra Petch', sans-serif;
+                font-size: 12.5px;
+                margin-top: 3px;
+                outline: none;
+            }
+            .edit-box-input:focus {
+                box-shadow: 0 0 8px var(--gold-glow);
+            }
+
             .admin-tools {
                 display: flex;
                 gap: 8px;
@@ -1043,6 +1120,10 @@ def get_map_dashboard():
             }
             .btn-edit { background: rgba(212,175,55,0.2); border-color: var(--gold-accent); color: var(--gold-accent); }
             .btn-edit:hover { background: rgba(212,175,55,0.4); color: #fff; }
+            .btn-save { background: rgba(0,255,204,0.25); border-color: var(--mgrs-green); color: var(--mgrs-green); }
+            .btn-save:hover { background: rgba(0,255,204,0.45); color: #fff; }
+            .btn-cancel { background: rgba(255,255,255,0.1); border-color: #8da196; color: #cfd8dc; }
+            .btn-cancel:hover { background: rgba(255,255,255,0.2); }
             .btn-del { background: rgba(229,57,53,0.2); border-color: #e53935; color: #ff6b6b; }
             .btn-del:hover { background: rgba(229,57,53,0.4); color: #fff; }
         </style>
@@ -1072,12 +1153,53 @@ def get_map_dashboard():
             </select>
         </div>
 
+        <div class="tactical-filter-bar" id="filter_bar" style="display: none;">
+            <div class="filter-chip active" onclick="applyTacticalFilter('ALL', this)">
+                <span>🌐 ทั้งหมด</span>
+                <span class="filter-count" id="count_ALL">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('🎯', this)">
+                <span>🎯 เป้าหมาย</span>
+                <span class="filter-count" id="count_🎯">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('⚔️', this)">
+                <span>⚔️ จุดปะทะ</span>
+                <span class="filter-count" id="count_⚔️">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('🛡️', this)">
+                <span>🛡️ ฐานที่มั่น</span>
+                <span class="filter-count" id="count_🛡️">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('⚠️', this)">
+                <span>⚠️ วัตถุต้องสงสัย</span>
+                <span class="filter-count" id="count_⚠️">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('🚁', this)">
+                <span>🚁 ลาน ฮ.</span>
+                <span class="filter-count" id="count_🚁">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('⛺', this)">
+                <span>⛺ จุดตรวจ</span>
+                <span class="filter-count" id="count_⛺">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('💧', this)">
+                <span>💧 แหล่งเสบียง</span>
+                <span class="filter-count" id="count_💧">0</span>
+            </div>
+            <div class="filter-chip" onclick="applyTacticalFilter('📡', this)">
+                <span>📡 สถานีสื่อสาร</span>
+                <span class="filter-count" id="count_📡">0</span>
+            </div>
+        </div>
+
         <div id="dashboard-map"></div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             let currentAdminKey = "";
             let currentReportsData = [];
+            let activeFilter = "ALL";
+            let mapLayersGroup = L.layerGroup();
 
             const layers = {
                 google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
@@ -1089,6 +1211,7 @@ def get_map_dashboard():
             const map = L.map('dashboard-map', { attributionControl: false }).setView([14.967565, 102.081882], 12);
             let activeLayer = layers.google_sat;
             activeLayer.addTo(map);
+            mapLayersGroup.addTo(map);
 
             function changeDashboardLayer(k) {
                 if (layers[k]) {
@@ -1113,33 +1236,85 @@ def get_map_dashboard():
                     currentAdminKey = key;
 
                     document.getElementById('auth-gate').style.display = 'none';
+                    document.getElementById('filter_bar').style.display = 'flex';
                     map.invalidateSize();
                     
+                    currentReportsData = data;
+                    updateFilterCounts(data);
                     renderMapData(data);
                 } catch (e) {
                     alert('⚠️ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
                 }
             }
 
-            function renderMapData(data) {
-                currentReportsData = data;
-                
-                map.eachLayer((layer) => {
-                    if (layer !== activeLayer) map.removeLayer(layer);
+            function updateFilterCounts(data) {
+                const counts = { 'ALL': data.length, '🎯': 0, '⚔️': 0, '🛡️': 0, '⚠️': 0, '🚁': 0, '⛺': 0, '💧': 0, '📡': 0 };
+                data.forEach(item => {
+                    const detail = item.detail || "";
+                    const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี:\s*(\S+)/) || detail.match(/สัญลักษณ์ยุทธวิธี:\s*(\S+)/);
+                    if (match) {
+                        const emoji = match[1];
+                        if (counts[emoji] !== undefined) counts[emoji]++;
+                    }
                 });
+                for (let k in counts) {
+                    const el = document.getElementById(`count_${k}`);
+                    if (el) el.innerText = counts[k];
+                }
+            }
+
+            function applyTacticalFilter(emoji, chipElement) {
+                activeFilter = emoji;
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chipElement.classList.add('active');
+
+                let filtered = currentReportsData;
+                if (emoji !== 'ALL') {
+                    filtered = currentReportsData.filter(item => {
+                        const detail = item.detail || "";
+                        return detail.includes(`สัญลักษณ์ยุทธวิธี: ${emoji}`) || detail.includes(`🎖️ สัญลักษณ์ยุทธวิธี: ${emoji}`);
+                    });
+                }
+                renderMapData(filtered, true);
+            }
+
+            function formatCleanRedDetail(rawDetail) {
+                if (!rawDetail) return "";
+                return rawDetail
+                    .replace(/^[0-9]+\.\s*/gm, '')
+                    .replace(/(เวลา:)/g, '<span class="sitrep-label-red">เวลา:</span>')
+                    .replace(/(เวลาบันทึก:)/g, '<span class="sitrep-label-red">เวลาบันทึก:</span>')
+                    .replace(/(สัญลักษณ์ยุทธวิธี:)/g, '<span class="sitrep-label-red">สัญลักษณ์ยุทธวิธี:</span>')
+                    .replace(/(รัศมีอันตราย:)/g, '<span class="sitrep-label-red">รัศมีอันตราย:</span>')
+                    .replace(/(สถานการณ์:)/g, '<span class="sitrep-label-red">สถานการณ์:</span>')
+                    .replace(/(เหตุการณ์:)/g, '<span class="sitrep-label-red">เหตุการณ์:</span>')
+                    .replace(/(การปฏิบัติ:)/g, '<span class="sitrep-label-red">การปฏิบัติ:</span>')
+                    .replace(/(พิกัด MGRS:)/g, '<span class="sitrep-label-red">พิกัด MGRS:</span>')
+                    .replace(/(พิกัด GPS:)/g, '<span class="sitrep-label-red">พิกัด GPS:</span>')
+                    .replace(/(แผนที่ Google:)/g, '<span class="sitrep-label-red">แผนที่ Google:</span>')
+                    .replace(/(จำนวนภาพถ่าย:)/g, '<span class="sitrep-label-red">จำนวนภาพถ่าย:</span>');
+            }
+
+            function extractField(detail, fieldName) {
+                const regex = new RegExp(`(?:[0-9]+\\.\\s*)?${fieldName}:\\s*(.*)`);
+                return detail.match(regex)?.[1] || "";
+            }
+
+            function renderMapData(data, autoZoom = false) {
+                mapLayersGroup.clearLayers();
 
                 if (data && data.length > 0) {
-                    document.getElementById('total_reports').innerText = `ตรวจพบรายงานทั้งหมด: ${data.length} จุดยุทธวิธี`;
+                    document.getElementById('total_reports').innerText = `แสดงรายงาน: ${data.length} จุด (ตัวกรอง: ${activeFilter})`;
                     const group = [];
 
                     data.forEach(item => {
                         if (item.latitude && item.longitude) {
                             const detail = item.detail || "";
                             let emoji = "🎯";
-                            const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี: (\\S+)/);
+                            const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี:\s*(\S+)/) || detail.match(/สัญลักษณ์ยุทธวิธี:\s*(\S+)/);
                             if (match) emoji = match[1];
 
-                            const rMatch = detail.match(/⭕ รัศมีอันตราย: (\\d+) เมตร/);
+                            const rMatch = detail.match(/⭕ รัศมีอันตราย:\s*(\d+)\s*เมตร/) || detail.match(/รัศมีอันตราย:\s*(\d+)\s*เมตร/);
                             if (rMatch) {
                                 const radiusMeters = parseInt(rMatch[1]);
                                 if (radiusMeters > 0) {
@@ -1150,72 +1325,101 @@ def get_map_dashboard():
                                         fillOpacity: 0.2,
                                         weight: 1.5,
                                         dashArray: '4, 6'
-                                    }).addTo(map);
+                                    }).addTo(mapLayersGroup);
                                 }
                             }
 
+                            // ขนาดไอคอนกะทัดรัด 22x22 พิกเซล
                             const customIcon = L.divIcon({
                                 className: 'custom-tactical-pin',
                                 html: emoji,
-                                iconSize: [30, 30],
-                                iconAnchor: [15, 15]
+                                iconSize: [22, 22],
+                                iconAnchor: [11, 11]
                             });
 
-                            const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
+                            const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(mapLayersGroup);
                             
                             let imgHtml = "";
                             if (item.image_url) {
                                 imgHtml = `<a href="${item.image_url}" target="_blank"><img src="${item.image_url}" class="popup-img" title="คลิกเพื่อดูรูปขนาดเต็ม"></a>`;
                             }
 
-                            const adminActionsHtml = `
-                                <div class="admin-tools">
-                                    <button class="btn-admin-act btn-edit" onclick="editReportPrompt(${item.id})">✏️ แก้ไข</button>
-                                    <button class="btn-admin-act btn-del" onclick="deleteReportPrompt(${item.id})">🗑️ ลบ</button>
-                                </div>
-                            `;
+                            const cleanFormattedHtml = formatCleanRedDetail(detail);
 
                             marker.bindPopup(`
-                                <div style="min-width: 250px; max-width: 320px;" class="sitrep-box">
+                                <div style="min-width: 250px; max-width: 330px;" class="sitrep-box" id="popup_content_${item.id}">
                                     <div style="font-size:15px; font-weight:bold; color:#d4af37; margin-bottom:8px; border-bottom:1px solid #d4af37; padding-bottom:4px;">
                                         ${emoji} รายงานสถานการณ์ยุทธวิธี
                                     </div>
-                                    <div style="white-space: pre-line; color:#e0e6ed; line-height:1.4;">${detail}</div>
-                                    ${imgHtml}
-                                    ${adminActionsHtml}
+                                    <div id="view_mode_${item.id}">
+                                        <div style="white-space: pre-line; color:#e0e6ed; line-height:1.5;">${cleanFormattedHtml}</div>
+                                        ${imgHtml}
+                                        <div class="admin-tools">
+                                            <button class="btn-admin-act btn-edit" onclick="enableEditMode(${item.id})">✏️ แก้ไขข้อมูล</button>
+                                            <button class="btn-admin-act btn-del" onclick="deleteReportPrompt(${item.id})">🗑️ ลบ</button>
+                                        </div>
+                                    </div>
+                                    <div id="edit_mode_${item.id}" style="display: none;">
+                                        <div style="margin-bottom: 8px;">
+                                            <span class="sitrep-label-red">สถานการณ์:</span>
+                                            <input type="text" id="edit_sit_${item.id}" class="edit-box-input" value="${extractField(detail, 'สถานการณ์')}">
+                                        </div>
+                                        <div style="margin-bottom: 8px;">
+                                            <span class="sitrep-label-red">เหตุการณ์:</span>
+                                            <textarea id="edit_inc_${item.id}" class="edit-box-input" rows="2">${extractField(detail, 'เหตุการณ์')}</textarea>
+                                        </div>
+                                        <div style="margin-bottom: 8px;">
+                                            <span class="sitrep-label-red">การปฏิบัติ:</span>
+                                            <textarea id="edit_act_${item.id}" class="edit-box-input" rows="2">${extractField(detail, 'การปฏิบัติ')}</textarea>
+                                        </div>
+                                        <div class="admin-tools">
+                                            <button class="btn-admin-act btn-save" onclick="saveEditedReport(${item.id})">💾 ตกลงบันทึก</button>
+                                            <button class="btn-admin-act btn-cancel" onclick="cancelEditMode(${item.id})">ยกเลิก</button>
+                                        </div>
+                                    </div>
                                 </div>
                             `);
                             group.push([item.latitude, item.longitude]);
                         }
                     });
 
-                    if (group.length > 0) {
-                        map.fitBounds(group, { padding: [50, 50] });
+                    if (group.length > 0 && (autoZoom || group.length === currentReportsData.length)) {
+                        map.fitBounds(group, { padding: [50, 50], maxZoom: 16 });
                     }
                 } else {
-                    document.getElementById('total_reports').innerText = "ยังไม่มีรายงานในระบบ";
+                    document.getElementById('total_reports').innerText = `ไม่พบจุดรายงานสำหรับตัวกรอง: ${activeFilter}`;
                 }
             }
 
-            async function editReportPrompt(reportId) {
-                const report = currentReportsData.find(r => r.id === reportId);
-                if (!report) return;
+            function enableEditMode(id) {
+                document.getElementById(`view_mode_${id}`).style.display = "none";
+                document.getElementById(`edit_mode_${id}`).style.display = "block";
+            }
 
-                const newSit = prompt("แก้ไขสถานการณ์:", report.detail.match(/1\\. สถานการณ์: (.*)/)?.[1] || "");
-                if (newSit === null) return;
+            function cancelEditMode(id) {
+                document.getElementById(`view_mode_${id}`).style.display = "block";
+                document.getElementById(`edit_mode_${id}`).style.display = "none";
+            }
 
-                const newInc = prompt("แก้ไขเหตุการณ์:", report.detail.match(/3\\. เหตุการณ์: (.*)/)?.[1] || "");
-                if (newInc === null) return;
+            async function saveEditedReport(reportId) {
+                const newSit = document.getElementById(`edit_sit_${reportId}`).value.trim();
+                const newInc = document.getElementById(`edit_inc_${reportId}`).value.trim();
+                const newAct = document.getElementById(`edit_act_${reportId}`).value.trim();
 
-                const newAct = prompt("แก้ไขการปฏิบัติ:", report.detail.match(/5\\. การปฏิบัติ: (.*)/)?.[1] || "");
-                if (newAct === null) return;
+                const editPass = prompt("🔑 กรุณากรอกรหัสผ่านเพื่อยืนยันการแก้ไขข้อมูล (wisarut):");
+                if (editPass === null) return;
+
+                if (editPass !== "wisarut") {
+                    alert("❌ รหัสผ่านไม่ถูกต้อง! ไม่สามารถแก้ไขข้อมูลได้");
+                    return;
+                }
 
                 try {
                     const res = await fetch('/api/update-report', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            passcode: currentAdminKey,
+                            passcode: editPass,
                             report_id: reportId,
                             situation: newSit,
                             incident: newInc,
@@ -1223,25 +1427,32 @@ def get_map_dashboard():
                         })
                     });
                     if (res.ok) {
-                        alert('✅ แก้ไขข้อมูลรายงานสำเร็จ');
+                        alert('✅ แก้ไขข้อมูลและบันทึกสำเร็จ');
                         verifyAdminKey();
                     } else {
-                        alert('❌ ไม่สามารถแก้ไขข้อมูลได้');
+                        const err = await res.json();
+                        alert('❌ ' + (err.detail || 'ไม่สามารถแก้ไขข้อมูลได้'));
                     }
                 } catch(e) {
-                    alert('⚠️ เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+                    alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อแก้ไขข้อมูล');
                 }
             }
 
             async function deleteReportPrompt(reportId) {
-                if (!confirm(`⚠️ ยืนยันที่จะลบจุดรายงาน ID: ${reportId} หรือไม่?`)) return;
+                const editPass = prompt("🔑 กรุณากรอกรหัสผ่านเพื่อยืนยันการลบจุดรายงาน (wisarut):");
+                if (editPass === null) return;
+
+                if (editPass !== "wisarut") {
+                    alert("❌ รหัสผ่านไม่ถูกต้อง! ปฏิเสธการลบข้อมูล");
+                    return;
+                }
 
                 try {
                     const res = await fetch('/api/delete-report', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            passcode: currentAdminKey,
+                            passcode: editPass,
                             report_id: reportId
                         })
                     });
@@ -1276,8 +1487,8 @@ def get_all_reports(passcode: str = ""):
 # API แก้ไขรายงาน
 @app.post("/api/update-report")
 def update_report(payload: UpdateReportPayload):
-    if payload.passcode != ADMIN_PASSCODE:
-        raise HTTPException(status_code=403, detail="รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง")
+    if payload.passcode != EDIT_PASSCODE:
+        raise HTTPException(status_code=403, detail="รหัสผ่านยืนยันการแก้ไขไม่ถูกต้อง")
 
     try:
         res = supabase.table("reports").select("*").eq("id", payload.report_id).execute()
@@ -1285,9 +1496,9 @@ def update_report(payload: UpdateReportPayload):
             raise HTTPException(status_code=404, detail="ไม่พบรายงาน")
 
         old_detail = res.data[0].get("detail", "")
-        new_detail = re.sub(r"1\. สถานการณ์: .*", f"1. สถานการณ์: {payload.situation}", old_detail)
-        new_detail = re.sub(r"3\. เหตุการณ์: .*", f"3. เหตุการณ์: {payload.incident}", new_detail)
-        new_detail = re.sub(r"5\. การปฏิบัติ: .*", f"5. การปฏิบัติ: {payload.action}", new_detail)
+        new_detail = re.sub(r"(?:[0-9]+\.\s*)?สถานการณ์:\s*.*", f"สถานการณ์: {payload.situation}", old_detail)
+        new_detail = re.sub(r"(?:[0-9]+\.\s*)?เหตุการณ์:\s*.*", f"เหตุการณ์: {payload.incident}", new_detail)
+        new_detail = re.sub(r"(?:[0-9]+\.\s*)?การปฏิบัติ:\s*.*", f"การปฏิบัติ: {payload.action}", new_detail)
 
         supabase.table("reports").update({"detail": new_detail}).eq("id", payload.report_id).execute()
         return {"status": "updated"}
@@ -1298,8 +1509,8 @@ def update_report(payload: UpdateReportPayload):
 # API ลบรายงาน
 @app.post("/api/delete-report")
 def delete_report(payload: DeleteReportPayload):
-    if payload.passcode != ADMIN_PASSCODE:
-        raise HTTPException(status_code=403, detail="รหัสผ่านผู้ดูแลระบบไม่ถูกต้อง")
+    if payload.passcode != EDIT_PASSCODE:
+        raise HTTPException(status_code=403, detail="รหัสผ่านยืนยันการลบไม่ถูกต้อง")
 
     try:
         supabase.table("reports").delete().eq("id", payload.report_id).execute()
@@ -1351,15 +1562,15 @@ async def submit_report(payload: ReportPayload):
             "report_type": "รายงานยุทธวิธี (PHANTOM HUD)",
             "detail": (
                 f"เวลา: {time_str}\n"
-                f"🎖️ สัญลักษณ์ยุทธวิธี: {payload.tactical_icon}\n"
-                f"⭕ รัศมีอันตราย: {radius_val} เมตร\n"
-                f"1. สถานการณ์: {payload.situation}\n"
-                f"2. เวลาบันทึก: {time_str}\n"
-                f"3. เหตุการณ์: {payload.incident}\n"
-                f"4. พิกัด MGRS: {mgrs_str}\n"
-                f"   พิกัด GPS: {payload.latitude:.6f}, {payload.longitude:.6f}\n"
-                f"5. การปฏิบัติ: {payload.action}\n"
-                f"📍 แผนที่ Google: https://maps.google.com/?q={payload.latitude},{payload.longitude}\n"
+                f"สัญลักษณ์ยุทธวิธี: {payload.tactical_icon}\n"
+                f"รัศมีอันตราย: {radius_val} เมตร\n"
+                f"สถานการณ์: {payload.situation}\n"
+                f"เวลาบันทึก: {time_str}\n"
+                f"เหตุการณ์: {payload.incident}\n"
+                f"พิกัด MGRS: {mgrs_str}\n"
+                f"พิกัด GPS: {payload.latitude:.6f}, {payload.longitude:.6f}\n"
+                f"การปฏิบัติ: {payload.action}\n"
+                f"แผนที่ Google: https://maps.google.com/?q={payload.latitude},{payload.longitude}\n"
                 f"จำนวนภาพถ่าย: {len(uploaded_image_urls)} ภาพ"
             ),
             "latitude": payload.latitude,
