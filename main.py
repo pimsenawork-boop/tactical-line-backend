@@ -32,6 +32,7 @@ class ReportPayload(BaseModel):
     action: str
     latitude: float
     longitude: float
+    mgrs: Optional[str] = ""
     images: Optional[List[str]] = []
     user_id: str = "PHANTOM_OPERATOR"
 
@@ -61,7 +62,7 @@ def get_form():
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>PHANTOM TACTICAL SITREP</title>
         <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-        <!-- Leaflet CSS -->
+        <!-- Leaflet CSS แผนที่ -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
             :root {
@@ -70,6 +71,7 @@ def get_form():
                 --border-subtle: rgba(212, 175, 55, 0.35);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
+                --mgrs-green: #00ffcc;
             }
             * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
             
@@ -194,6 +196,16 @@ def get_form():
                     url('/bg.jpg');
                 border-color: rgba(255, 255, 255, 0.08);
             }
+            .mgrs-input {
+                font-family: 'Share Tech Mono', monospace;
+                color: var(--mgrs-green) !important;
+                font-weight: 700;
+                letter-spacing: 1.2px;
+                background-image: 
+                    linear-gradient(rgba(0, 20, 15, 0.7), rgba(0, 15, 10, 0.85)),
+                    url('/bg.jpg');
+                border-color: rgba(0, 255, 204, 0.35);
+            }
             textarea { resize: vertical; min-height: 55px; }
 
             .gps-tools {
@@ -265,7 +277,7 @@ def get_form():
             }
             .search-box-wrapper {
                 flex: 1;
-                background: rgba(18, 24, 20, 0.88);
+                background: rgba(18, 24, 20, 0.9);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
@@ -292,7 +304,7 @@ def get_form():
                 width: 44px;
                 height: 44px;
                 border-radius: 50%;
-                background: rgba(18, 24, 20, 0.88);
+                background: rgba(18, 24, 20, 0.9);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
@@ -307,18 +319,16 @@ def get_form():
             }
             .btn-circle-icon:active { transform: scale(0.92); }
 
-            /* Floating Layer & Location Buttons */
             .map-floating-controls {
                 position: absolute;
                 right: 15px;
-                bottom: 120px;
+                bottom: 140px;
                 z-index: 1000;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
             }
 
-            /* Center Pin Indicator (Google Maps Style) */
             .center-pin-marker {
                 position: absolute;
                 top: 50%;
@@ -355,10 +365,10 @@ def get_form():
                 left: 15px;
                 right: 15px;
                 z-index: 1000;
-                background: rgba(12, 18, 14, 0.92);
+                background: rgba(12, 18, 14, 0.94);
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
-                border: 1px solid var(--border-subtle);
+                border: 1.5px solid var(--border-subtle);
                 border-radius: 16px;
                 padding: 14px 16px;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.8);
@@ -375,10 +385,17 @@ def get_form():
             }
             .coord-info-val {
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 14px;
+                font-size: 13.5px;
                 font-weight: 700;
                 color: #7ee0ad;
                 margin-top: 2px;
+            }
+            .coord-mgrs-val {
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 13.5px;
+                font-weight: 700;
+                color: var(--mgrs-green);
+                margin-top: 1px;
             }
             .btn-confirm-pin {
                 background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
@@ -386,7 +403,7 @@ def get_form():
                 color: #000;
                 font-weight: 700;
                 font-size: 13px;
-                padding: 10px 18px;
+                padding: 11px 18px;
                 border-radius: 10px;
                 cursor: pointer;
                 text-transform: uppercase;
@@ -509,20 +526,28 @@ def get_form():
                 </div>
             </div>
 
+            <div class="form-group">
+                <label>2. เวลาบันทึก (AUTO):</label>
+                <input type="text" id="time_display" class="readonly-input" readonly>
+            </div>
+
             <div class="grid-2">
                 <div class="form-group">
-                    <label>2. เวลาบันทึก (AUTO):</label>
-                    <input type="text" id="time_display" class="readonly-input" readonly>
+                    <label>3.1 พิกัด GPS (LAT, LON):</label>
+                    <input type="text" id="coords_display" placeholder="14.xxxxxx, 102.xxxxxx" onchange="manualCoordsInput(this.value)">
                 </div>
                 <div class="form-group">
-                    <label>3. พิกัด GPS (LAT, LON):</label>
-                    <input type="text" id="coords_display" placeholder="14.xxxxxx, 102.xxxxxx" onchange="manualCoordsInput(this.value)">
-                    <div class="gps-tools">
-                        <button type="button" class="tool-btn" onclick="getAutoGPS()">🛰️ AUTO GPS</button>
-                        <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่</button>
-                    </div>
-                    <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
+                    <label>3.2 พิกัดทหาร (MGRS):</label>
+                    <input type="text" id="mgrs_display" class="mgrs-input" readonly placeholder="คำนวณอัตโนมัติ...">
                 </div>
+            </div>
+
+            <div class="form-group" style="margin-top: -6px;">
+                <div class="gps-tools">
+                    <button type="button" class="tool-btn" onclick="getAutoGPS()">🛰️ AUTO GPS</button>
+                    <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่ (MGRS)</button>
+                </div>
+                <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
             </div>
 
             <div class="form-group">
@@ -574,29 +599,33 @@ def get_form():
                     <div class="btn-circle-icon" onclick="closeMapModal()" style="color:#ff6b6b; font-size:18px;">✕</div>
                 </div>
 
-                <!-- Floating Controls: Switch Layer & Lock GPS -->
+                <!-- Floating Controls -->
                 <div class="map-floating-controls">
                     <div class="btn-circle-icon" onclick="toggleMapLayer()" title="สลับดาวเทียม/แผนที่">🛰️</div>
                     <div class="btn-circle-icon" onclick="locateUserOnMap()" title="ล็อกตำแหน่ง GPS ตัวเอง">🎯</div>
                 </div>
 
-                <!-- Bottom Floating Confirmation Sheet -->
+                <!-- Bottom Floating Confirmation Sheet (GPS + MGRS) -->
                 <div class="map-bottom-sheet">
                     <div>
                         <div class="coord-info-title">🎯 พิกัดเป้าเล็งกึ่งกลาง</div>
                         <div class="coord-info-val" id="sheet_coords">14.967565, 102.081882</div>
+                        <div class="coord-mgrs-val" id="sheet_mgrs">MGRS: คำนวณ...</div>
                     </div>
-                    <button type="button" class="btn-confirm-pin" onclick="confirmCenterPin()">ปักหมุดตำแหน่งนี้</button>
+                    <button type="button" class="btn-confirm-pin" onclick="confirmCenterPin()">ปักหมุดจุดนี้</button>
                 </div>
             </div>
         </div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <!-- ไลบรารี MGRS สำหรับแปลงพิกัดกริดทหาร -->
+        <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/dist/mgrs.min.js"></script>
         <script>
             let userLat = 14.967565;
             let userLon = 102.081882;
             let currentPinLat = 14.967565;
             let currentPinLon = 102.081882;
+            let currentMGRS = "";
             let imagesArray = [null, null, null, null, null];
             let activeSlotIndex = 0;
             let map, satelliteLayer, standardLayer;
@@ -607,6 +636,27 @@ def get_form():
                 document.getElementById('time_display').value = now.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
             }
             updateTime();
+
+            // ฟังก์ชันแปลง Lat/Lon เป็น MGRS 10 หลักอย่างเป็นระเบียบ
+            function convertToMGRS(lat, lon) {
+                try {
+                    if (typeof mgrs !== 'undefined' && mgrs.forward) {
+                        const raw = mgrs.forward([lon, lat], 5); // 5 digits = 10-digit grid (1m precision)
+                        // จัดรูปแบบให้อ่านง่าย เช่น 47P QS 17852 54621
+                        if (raw.length >= 15) {
+                            const gzd = raw.slice(0, 3);
+                            const sq = raw.slice(3, 5);
+                            const easting = raw.slice(5, 10);
+                            const northing = raw.slice(10, 15);
+                            return `${gzd} ${sq} ${easting} ${northing}`;
+                        }
+                        return raw;
+                    }
+                } catch (e) {
+                    console.error("MGRS error:", e);
+                }
+                return "N/A";
+            }
 
             function getAutoGPS() {
                 const status = document.getElementById('gps_status');
@@ -638,6 +688,8 @@ def get_form():
 
             function updateCoordsDisplay() {
                 document.getElementById('coords_display').value = `${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
+                currentMGRS = convertToMGRS(userLat, userLon);
+                document.getElementById('mgrs_display').value = currentMGRS;
             }
 
             function manualCoordsInput(val) {
@@ -650,6 +702,7 @@ def get_form():
                         userLon = lon;
                         currentPinLat = lat;
                         currentPinLon = lon;
+                        updateCoordsDisplay();
                         document.getElementById('gps_status').innerText = "📍 พิกัด: กำหนดตำแหน่งเอง";
                         document.getElementById('gps_status').style.color = "#d4af37";
                     }
@@ -664,13 +717,11 @@ def get_form():
                         attributionControl: false
                     }).setView([currentPinLat, currentPinLon], 16);
 
-                    // 1. ภาพถ่ายดาวเทียมผสมถนนความละเอียดสูง
                     satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
                         maxZoom: 20,
                         subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
                     });
 
-                    // 2. แผนที่ถนนแบบสมูท
                     standardLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
                         maxZoom: 20,
                         subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
@@ -680,7 +731,6 @@ def get_form():
 
                     const pinElement = document.getElementById('center_pin');
 
-                    // อัปเดตพิกัดตามตำแหน่งศูนย์กลางหน้าจอแบบ Real-time
                     map.on('movestart', () => {
                         pinElement.classList.add('dragging');
                     });
@@ -690,6 +740,8 @@ def get_form():
                         currentPinLat = center.lat;
                         currentPinLon = center.lng;
                         document.getElementById('sheet_coords').innerText = `${currentPinLat.toFixed(6)}, ${currentPinLon.toFixed(6)}`;
+                        const mgrsText = convertToMGRS(currentPinLat, currentPinLon);
+                        document.getElementById('sheet_mgrs').innerText = `MGRS: ${mgrsText}`;
                     });
 
                     map.on('moveend', () => {
@@ -699,6 +751,7 @@ def get_form():
                     map.setView([currentPinLat, currentPinLon], 16);
                 }
                 document.getElementById('sheet_coords').innerText = `${currentPinLat.toFixed(6)}, ${currentPinLon.toFixed(6)}`;
+                document.getElementById('sheet_mgrs').innerText = `MGRS: ${convertToMGRS(currentPinLat, currentPinLon)}`;
             }
 
             function openMapModal() {
@@ -759,8 +812,8 @@ def get_form():
                 userLat = currentPinLat;
                 userLon = currentPinLon;
                 updateCoordsDisplay();
-                document.getElementById('gps_status').innerText = "🎯 พิกัด: ปักหมุดแม่นยำ (แผนที่)";
-                document.getElementById('gps_status').style.color = "#7ee0ad";
+                document.getElementById('gps_status').innerText = "🎯 พิกัด: ปักหมุดแม่นยำ (MGRS)";
+                document.getElementById('gps_status').style.color = "#00ffcc";
                 closeMapModal();
             }
 
@@ -838,6 +891,7 @@ def get_form():
                             action: action,
                             latitude: userLat,
                             longitude: userLon,
+                            mgrs: currentMGRS,
                             images: validImages
                         })
                     });
@@ -895,6 +949,7 @@ async def submit_report(payload: ReportPayload):
                 print(f"Image upload error for item {idx}: {upload_err}")
 
     first_image_url = uploaded_image_urls[0] if uploaded_image_urls else None
+    mgrs_str = payload.mgrs if payload.mgrs else "N/A"
 
     try:
         report_data = {
@@ -905,6 +960,9 @@ async def submit_report(payload: ReportPayload):
                 f"1. สถานการณ์: {payload.situation}\n"
                 f"3. เหตุการณ์: {payload.incident}\n"
                 f"5. การปฏิบัติ: {payload.action}\n"
+                f"🎖️ พิกัดทหาร (MGRS): {mgrs_str}\n"
+                f"🌐 พิกัด GPS: {payload.latitude:.6f}, {payload.longitude:.6f}\n"
+                f"📍 แผนที่: https://maps.google.com/?q={payload.latitude},{payload.longitude}\n"
                 f"จำนวนภาพถ่าย: {len(uploaded_image_urls)} ภาพ"
             ),
             "latitude": payload.latitude,
