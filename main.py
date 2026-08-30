@@ -314,7 +314,6 @@ def get_form():
                 z-index: 100; pointer-events: none; text-align: center;
             }
             .center-pin-marker.dragging { transform: translate(-50%, -120%) scale(1.1); }
-            /* ปรับขนาดอิโมจิตอนเล็งปักหมุดให้เล็กลงกะทัดรัด (24px) */
             .pin-emoji-badge { font-size: 24px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
             .pin-shadow {
                 position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
@@ -859,7 +858,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD พร้อมระบบแสดงภาพสมบูรณ์) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -989,7 +988,6 @@ def get_map_dashboard():
                 outline: none;
             }
 
-            /* แถบกรองอิโมจิสัญลักษณ์ยุทธวิธี */
             .tactical-filter-bar {
                 position: absolute;
                 bottom: 20px;
@@ -1056,9 +1054,51 @@ def get_map_dashboard():
                 box-shadow: 0 10px 30px rgba(0,0,0,0.9) !important;
             }
             .leaflet-popup-tip { background: #d4af37 !important; }
-            .popup-img { width: 100%; border-radius: 6px; margin-top: 8px; border: 1px solid rgba(212,175,55,0.4); max-height: 180px; object-fit: cover; }
+
+            /* สไตล์แกลเลอรีรูปภาพในกล่อง Popup */
+            .popup-gallery {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+                gap: 6px;
+                margin-top: 8px;
+                padding-top: 6px;
+                border-top: 1px dashed rgba(212,175,55,0.3);
+            }
+            .popup-thumb {
+                width: 100%;
+                aspect-ratio: 1 / 1;
+                border-radius: 6px;
+                border: 1px solid rgba(212,175,55,0.4);
+                object-fit: cover;
+                cursor: pointer;
+                transition: 0.2s;
+            }
+            .popup-thumb:hover {
+                border-color: #fff;
+                box-shadow: 0 0 10px var(--gold-glow);
+                transform: scale(1.04);
+            }
+
+            /* หน้าต่างดูภาพขยายใหญ่ (Photo Modal Lightbox) */
+            #photo-lightbox {
+                display: none;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.92);
+                backdrop-filter: blur(10px);
+                z-index: 100000;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            #lightbox-img {
+                max-width: 90vw;
+                max-height: 85vh;
+                border-radius: 12px;
+                border: 2px solid var(--gold-accent);
+                box-shadow: 0 0 35px rgba(0,0,0,0.9);
+            }
             
-            /* ปรับขนาดอิโมจิหมุดบนแผนที่รวมยุทธศาสตร์ให้เล็กลงกะทัดรัด (20px) */
             .custom-tactical-pin {
                 font-size: 20px;
                 text-align: center;
@@ -1137,6 +1177,11 @@ def get_map_dashboard():
                 <input type="password" id="admin_key_input" class="gate-input" autofocus onkeypress="if(event.key==='Enter') verifyAdminKey()">
                 <button type="button" class="gate-btn" onclick="verifyAdminKey()">เข้าสู่ศูนย์แผนที่ยุทธศาสตร์</button>
             </div>
+        </div>
+
+        <!-- หน้าต่างขยายดูรูปภาพขนาดใหญ่ -->
+        <div id="photo-lightbox" onclick="closeLightbox()">
+            <img id="lightbox-img" src="" onclick="event.stopPropagation()">
         </div>
 
         <div class="header-bar">
@@ -1219,6 +1264,15 @@ def get_map_dashboard():
                     activeLayer = layers[k];
                     activeLayer.addTo(map);
                 }
+            }
+
+            function openLightbox(url) {
+                document.getElementById('lightbox-img').src = url;
+                document.getElementById('photo-lightbox').style.display = 'flex';
+            }
+
+            function closeLightbox() {
+                document.getElementById('photo-lightbox').style.display = 'none';
             }
 
             async function verifyAdminKey() {
@@ -1329,7 +1383,6 @@ def get_map_dashboard():
                                 }
                             }
 
-                            // ขนาดไอคอนกะทัดรัด 22x22 พิกเซล
                             const customIcon = L.divIcon({
                                 className: 'custom-tactical-pin',
                                 html: emoji,
@@ -1339,9 +1392,16 @@ def get_map_dashboard():
 
                             const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(mapLayersGroup);
                             
-                            let imgHtml = "";
-                            if (item.image_url) {
-                                imgHtml = `<a href="${item.image_url}" target="_blank"><img src="${item.image_url}" class="popup-img" title="คลิกเพื่อดูรูปขนาดเต็ม"></a>`;
+                            // ดึงภาพถ่ายทั้งหมด (รองรับทั้งภาพเดี่ยว หรือคั่นด้วยจุลภาค)
+                            let galleryHtml = "";
+                            if (item.image_url && item.image_url.trim() !== "") {
+                                const imgUrls = item.image_url.split(",").map(u => u.trim()).filter(u => u !== "");
+                                if (imgUrls.length > 0) {
+                                    const thumbs = imgUrls.map(url => `
+                                        <img src="${url}" class="popup-thumb" onclick="openLightbox('${url}')" title="แตะเพื่อดูภาพขนาดใหญ่">
+                                    `).join("");
+                                    galleryHtml = `<div class="popup-gallery">${thumbs}</div>`;
+                                }
                             }
 
                             const cleanFormattedHtml = formatCleanRedDetail(detail);
@@ -1353,7 +1413,7 @@ def get_map_dashboard():
                                     </div>
                                     <div id="view_mode_${item.id}">
                                         <div style="white-space: pre-line; color:#e0e6ed; line-height:1.5;">${cleanFormattedHtml}</div>
-                                        ${imgHtml}
+                                        ${galleryHtml}
                                         <div class="admin-tools">
                                             <button class="btn-admin-act btn-edit" onclick="enableEditMode(${item.id})">✏️ แก้ไขข้อมูล</button>
                                             <button class="btn-admin-act btn-del" onclick="deleteReportPrompt(${item.id})">🗑️ ลบ</button>
@@ -1519,7 +1579,7 @@ def delete_report(payload: DeleteReportPayload):
         print(f"Delete error: {e}")
         raise HTTPException(status_code=500, detail="ไม่สามารถลบข้อมูลได้")
 
-# API รับรายงานจากหน้าฟอร์ม
+# API รับรายงานจากหน้าฟอร์ม (บันทึกรูปลง Supabase Storage และเก็บทุกลิงก์)
 @app.post("/api/submit-report")
 async def submit_report(payload: ReportPayload):
     if payload.passcode != REPORT_PASSCODE:
@@ -1552,7 +1612,8 @@ async def submit_report(payload: ReportPayload):
             except Exception as upload_err:
                 print(f"Image upload error for item {idx}: {upload_err}")
 
-    first_image_url = uploaded_image_urls[0] if uploaded_image_urls else None
+    # รวม URL ของทุกภาพคั่นด้วยจุลภาค
+    all_images_str = ",".join(uploaded_image_urls) if uploaded_image_urls else None
     mgrs_str = payload.mgrs if payload.mgrs else "N/A"
     radius_val = payload.radius_meters or 0
 
@@ -1575,7 +1636,7 @@ async def submit_report(payload: ReportPayload):
             ),
             "latitude": payload.latitude,
             "longitude": payload.longitude,
-            "image_url": first_image_url
+            "image_url": all_images_str
         }
         supabase.table("reports").insert(report_data).execute()
     except Exception as err:
