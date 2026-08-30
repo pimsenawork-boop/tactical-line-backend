@@ -50,13 +50,12 @@ def get_form():
         <style>
             :root {
                 --gold-accent: #d4af37;
-                --gold-glow: rgba(212, 175, 55, 0.35);
-                --panel-bg: rgba(14, 18, 16, 0.78);
-                --input-bg: rgba(7, 10, 8, 0.65);
-                --border-subtle: rgba(212, 175, 55, 0.28);
+                --gold-glow: rgba(212, 175, 55, 0.4);
+                --panel-bg: rgba(14, 18, 16, 0.85);
+                --input-bg: rgba(7, 10, 8, 0.7);
+                --border-subtle: rgba(212, 175, 55, 0.3);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
-                --fpv-cyan: #00ffc4;
             }
             * { box-sizing: border-box; }
             body {
@@ -64,11 +63,11 @@ def get_form():
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
                 background-color: #060907;
-                /* พื้นหลังโปสเตอร์ภาพยนตร์สงครามโดรน + แสงเงาพิกัด HUD */
+                /* พื้นหลังแนวสมรภูมิรบ โทนมืดสมูทตา */
                 background-image: 
-                    radial-gradient(circle at 50% 20%, rgba(0, 255, 196, 0.08) 0%, transparent 50%),
-                    radial-gradient(circle at 50% 85%, rgba(0, 0, 0, 0.9) 0%, transparent 80%),
-                    linear-gradient(180deg, rgba(6, 10, 8, 0.75) 0%, rgba(4, 7, 5, 0.92) 100%),
+                    radial-gradient(circle at 50% 20%, rgba(0, 255, 196, 0.08) 0%, transparent 55%),
+                    radial-gradient(circle at 50% 85%, rgba(0, 0, 0, 0.95) 0%, transparent 80%),
+                    linear-gradient(180deg, rgba(6, 10, 8, 0.78) 0%, rgba(4, 7, 5, 0.94) 100%),
                     url('https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1920&q=80');
                 background-size: cover;
                 background-position: center;
@@ -78,18 +77,6 @@ def get_form():
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                position: relative;
-            }
-
-            /* เส้นสแกน OSD มุมกล้อง FPV */
-            body::after {
-                content: "";
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-                background-size: 100% 4px;
-                pointer-events: none;
-                z-index: 0;
             }
 
             .hud-container {
@@ -104,10 +91,9 @@ def get_form():
                 -webkit-backdrop-filter: blur(18px);
                 position: relative;
                 overflow: hidden;
-                z-index: 1;
             }
 
-            /* แถบริบบิ้นธงชาติตัดมุมขวาบน */
+            /* แถบริบบิ้นธงชาติไทยมุมบนขวา */
             .thai-ribbon {
                 position: absolute;
                 top: 0;
@@ -125,24 +111,30 @@ def get_form():
 
             .header-badge {
                 text-align: center;
-                margin-bottom: 18px;
+                margin-bottom: 16px;
                 position: relative;
             }
 
-            /* ตราอาร์ม PHANTOM Tactical Patch */
-            .patch-container {
-                width: 78px;
-                height: 78px;
+            /* ตราอาร์ม PHANTOM อยู่หัวข้อบนสุดตรงกลาง */
+            .patch-image-wrapper {
+                width: 110px;
+                height: 110px;
                 margin: 0 auto 10px auto;
-                background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(0,0,0,0) 70%);
+                border-radius: 12px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+                filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 12px var(--gold-glow));
+                transition: transform 0.3s ease;
             }
-            .patch-svg {
-                width: 70px;
-                height: 70px;
+            .patch-image-wrapper:hover {
+                transform: scale(1.03);
+            }
+            .patch-image-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 10px;
             }
 
             .title-main {
@@ -179,7 +171,6 @@ def get_form():
                 letter-spacing: 0.5px;
             }
 
-            /* ช่องกรอกข้อมูล Smooth Minimal Tactical */
             input, textarea {
                 width: 100%;
                 background: var(--input-bg);
@@ -205,7 +196,6 @@ def get_form():
             }
             textarea { resize: vertical; min-height: 52px; }
 
-            /* 5 ช่องสี่เหลี่ยมจัตุรัสแนบภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -282,21 +272,14 @@ def get_form():
             <div class="thai-ribbon"></div>
             
             <div class="header-badge">
-                <div class="patch-container">
-                    <svg class="patch-svg" viewBox="0 0 100 100">
-                        <polygon points="50,5 95,30 80,95 20,95 5,30" fill="#2d3b2b" stroke="#d4af37" stroke-width="3" />
-                        <polygon points="50,12 88,33 75,88 25,88 12,33" fill="#1b241a" stroke="#d4af37" stroke-width="1" />
-                        <path d="M50 35 L75 25 L85 45 L65 50 L50 65 L35 50 L15 45 L25 25 Z" fill="#c49d32" />
-                        <circle cx="50" cy="40" r="10" fill="#e5c158" />
-                        <circle cx="46" cy="38" r="2" fill="#ff1a1a" />
-                        <circle cx="54" cy="38" r="2" fill="#ff1a1a" />
-                        <polygon points="50,42 47,48 53,48" fill="#d4af37" />
-                        <rect x="25" y="70" width="50" height="14" fill="#000" stroke="#d4af37" stroke-width="1" rx="2" />
-                        <text x="50" y="81" font-family="'Chakra Petch', sans-serif" font-size="8" font-weight="bold" fill="#d4af37" text-anchor="middle">PHANTOM</text>
-                    </svg>
+                <!-- ตราอาร์ม PHANTOM ของแท้ด้านบน -->
+                <div class="patch-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=400&q=80" 
+                         onerror="this.src='https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=400&q=80'"
+                         alt="PHANTOM TACTICAL PATCH">
                 </div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
-                <div class="title-sub">FPV RECON & TACTICAL STRIKE FEED</div>
+                <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
             </div>
 
             <div class="grid-2">
