@@ -647,12 +647,11 @@ def get_form():
                 }
             }
 
-            // ฟังก์ชันค้นหาอัจฉริยะ (Smart Location & Coordinate Parser)
+            // ค้นหาพิกัด Lat,Lon / MGRS / ชื่อสถานที่
             async function searchLocation() {
                 const query = document.getElementById('map_search_input').value.trim();
                 if (!query) return;
 
-                // 1. ตรวจสอบรูปแบบพิกัด GPS (Lat, Lon)
                 const latLonRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)[,\s]+[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
                 if (latLonRegex.test(query)) {
                     const parts = query.split(/[\s,]+/);
@@ -664,30 +663,22 @@ def get_form():
                     }
                 }
 
-                // 2. ตรวจสอบรูปแบบพิกัดทหาร MGRS
                 try {
                     const cleanMGRS = query.replace(/\s+/g, '').toUpperCase();
                     if (typeof mgrs !== 'undefined' && mgrs.toPoint) {
                         const point = mgrs.toPoint(cleanMGRS);
                         if (point && point.length === 2) {
-                            const lon = point[0];
-                            const lat = point[1];
-                            map.flyTo([lat, lon], 17, { animate: true, duration: 1.2 });
+                            map.flyTo([point[1], point[0]], 17, { animate: true, duration: 1.2 });
                             return;
                         }
                     }
-                } catch (e) {
-                    // หากไม่ใช่ MGRS ให้ข้ามไปค้นหาชื่อสถานที่ต่อไป
-                }
+                } catch (e) {}
 
-                // 3. ค้นหาด้วยชื่อสถานที่ / ค่าย / อำเภอ ผ่าน Nominatim API
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=th`);
                     const data = await res.json();
                     if (data && data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
+                        map.flyTo([parseFloat(data[0].lat), parseFloat(data[0].lon)], 16, { animate: true, duration: 1.5 });
                     } else {
                         alert('⚠️ ไม่พบข้อมูลพิกัดหรือสถานที่ดังกล่าว กรุณาตรวจสอบความถูกต้อง');
                     }
@@ -800,7 +791,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD พร้อมระบบค้นหาพิกัด) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -854,6 +845,24 @@ def get_map_dashboard():
             }
             .header-bar h2 { font-size: 16px; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
             .header-bar p { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffcc; margin: 2px 0 0 0; }
+
+            /* แถบค้นหาพิกัดบนหน้าแดชบอร์ดแผนที่รวม */
+            .dashboard-search-container {
+                position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000;
+                background: rgba(10, 16, 13, 0.95); backdrop-filter: blur(14px);
+                border: 1.5px solid rgba(212, 175, 55, 0.45); border-radius: 30px;
+                padding: 4px 14px; display: flex; align-items: center; box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+                width: 90%; max-width: 420px;
+            }
+            .dashboard-search-container input {
+                background: transparent; border: none; outline: none;
+                color: #fff; font-family: 'Chakra Petch', sans-serif; font-size: 13px; padding: 6px 8px; flex: 1;
+            }
+            .dashboard-search-container button {
+                background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
+                border: none; border-radius: 20px; color: #000; font-weight: 700;
+                padding: 5px 14px; font-size: 11.5px; cursor: pointer; text-transform: uppercase;
+            }
 
             .map-switch-top {
                 position: absolute; top: 15px; right: 15px; z-index: 1000;
@@ -935,6 +944,13 @@ def get_map_dashboard():
             <p id="total_reports">กำลังโหลดพิกัดรายงานยุทธวิธี...</p>
         </div>
 
+        <!-- แถบค้นหาพิกัด Lat,Lon / MGRS / ชื่อสถานที่ บนแผนที่รวม -->
+        <div class="dashboard-search-container" id="dash_search_box" style="display: none;">
+            <span style="font-size:14px; margin-right:4px;">🔍</span>
+            <input type="text" id="dash_search_input" placeholder="ค้นหา: พิกัด Lat,Lon / MGRS / ชื่อสถานที่..." onkeypress="if(event.key==='Enter') searchDashboardLocation()">
+            <button type="button" onclick="searchDashboardLocation()">ค้นหา</button>
+        </div>
+
         <div class="map-switch-top">
             <select onchange="changeDashboardLayer(this.value)">
                 <option value="google_sat">🌐 Google Maps (Satellite)</option>
@@ -986,11 +1002,13 @@ def get_map_dashboard():
         <div id="dashboard-map"></div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/dist/mgrs.min.js"></script>
         <script>
             let currentAdminKey = "";
             let currentReportsData = [];
             let activeFilter = "ALL";
             let mapLayersGroup = L.layerGroup();
+            let searchMarker = null;
 
             const layers = {
                 google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
@@ -1035,6 +1053,7 @@ def get_map_dashboard():
                     currentAdminKey = key;
 
                     document.getElementById('auth-gate').style.display = 'none';
+                    document.getElementById('dash_search_box').style.display = 'flex';
                     document.getElementById('filter_bar').style.display = 'flex';
                     map.invalidateSize();
                     
@@ -1043,6 +1062,56 @@ def get_map_dashboard():
                     renderMapData(data);
                 } catch (e) {
                     alert('⚠️ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
+                }
+            }
+
+            // ค้นหาพิกัด Lat,Lon / MGRS / ชื่อสถานที่ บนแดชบอร์ดแผนที่รวม
+            async function searchDashboardLocation() {
+                const query = document.getElementById('dash_search_input').value.trim();
+                if (!query) return;
+
+                if (searchMarker) { map.removeLayer(searchMarker); }
+
+                // 1. ตรวจสอบพิกัด GPS (Lat, Lon)
+                const latLonRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)[,\s]+[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+                if (latLonRegex.test(query)) {
+                    const parts = query.split(/[\s,]+/);
+                    const lat = parseFloat(parts[0]);
+                    const lon = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        map.flyTo([lat, lon], 17, { animate: true, duration: 1.2 });
+                        searchMarker = L.circleMarker([lat, lon], { color: '#00ffcc', radius: 10 }).addTo(map).bindPopup(`📍 พิกัดเป้าหมาย: ${lat.toFixed(6)}, ${lon.toFixed(6)}`).openPopup();
+                        return;
+                    }
+                }
+
+                // 2. ตรวจสอบพิกัดทหาร MGRS
+                try {
+                    const cleanMGRS = query.replace(/\s+/g, '').toUpperCase();
+                    if (typeof mgrs !== 'undefined' && mgrs.toPoint) {
+                        const point = mgrs.toPoint(cleanMGRS);
+                        if (point && point.length === 2) {
+                            map.flyTo([point[1], point[0]], 17, { animate: true, duration: 1.2 });
+                            searchMarker = L.circleMarker([point[1], point[0]], { color: '#00ffcc', radius: 10 }).addTo(map).bindPopup(`📍 พิกัด MGRS: ${cleanMGRS}`).openPopup();
+                            return;
+                        }
+                    }
+                } catch (e) {}
+
+                // 3. ค้นหาชื่อสถานที่
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=th`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
+                        searchMarker = L.circleMarker([lat, lon], { color: '#00ffcc', radius: 10 }).addTo(map).bindPopup(`📍 สถานที่: ${data[0].display_name}`).openPopup();
+                    } else {
+                        alert('⚠️ ไม่พบข้อมูลพิกัดหรือสถานที่ดังกล่าว');
+                    }
+                } catch (err) {
+                    alert('⚠️ ไม่สามารถค้นหาสถานที่ได้');
                 }
             }
 
