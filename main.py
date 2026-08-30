@@ -51,24 +51,25 @@ def get_form():
             :root {
                 --gold-accent: #d4af37;
                 --gold-glow: rgba(212, 175, 55, 0.4);
-                --olive-dark: #121915;
-                --panel-bg: rgba(14, 19, 16, 0.78);
-                --input-bg: rgba(8, 12, 10, 0.65);
-                --border-subtle: rgba(212, 175, 55, 0.25);
+                --panel-bg: rgba(10, 14, 12, 0.82);
+                --input-bg: rgba(6, 10, 8, 0.7);
+                --border-subtle: rgba(212, 175, 55, 0.3);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
+                --fpv-cyan: #00ffc4;
             }
             * { box-sizing: border-box; }
             body {
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
-                background-color: #0b0d0c;
+                background-color: #050806;
+                /* พื้นหลัง FPV Drone War Theme ผสมผสานแสงเงาตกกระทบ */
                 background-image: 
-                    radial-gradient(circle at 50% 20%, rgba(28, 44, 89, 0.35) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 80%, rgba(165, 28, 36, 0.25) 0%, transparent 40%),
-                    linear-gradient(180deg, rgba(8, 12, 10, 0.88) 0%, rgba(5, 8, 6, 0.94) 100%),
-                    url('https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1920&q=80');
+                    radial-gradient(circle at 50% 30%, rgba(0, 255, 196, 0.08) 0%, transparent 65%),
+                    radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
+                    linear-gradient(180deg, rgba(3, 6, 4, 0.78) 0%, rgba(5, 8, 6, 0.92) 100%),
+                    url('https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1920&q=80');
                 background-size: cover;
                 background-position: center;
                 background-attachment: fixed;
@@ -77,21 +78,34 @@ def get_form():
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                position: relative;
             }
+
+            /* สัญลักษณ์ Crosshair & OSD แบบมุมมองกล้องโดรน FPV */
+            body::before {
+                content: "";
+                position: fixed;
+                top: 20px; left: 20px; right: 20px; bottom: 20px;
+                border: 1px solid rgba(0, 255, 196, 0.12);
+                pointer-events: none;
+                z-index: 0;
+            }
+
             .hud-container {
                 width: 100%;
                 max-width: 520px;
                 background: var(--panel-bg);
                 border: 1px solid var(--border-subtle);
                 border-radius: 12px;
-                box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.1);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.12);
                 padding: 22px 20px;
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
                 position: relative;
                 overflow: hidden;
+                z-index: 1;
             }
-            /* แถบธงชาติไทยมุมบนขวา */
+
             .thai-ribbon {
                 position: absolute;
                 top: 0;
@@ -106,16 +120,31 @@ def get_form():
                     var(--thai-red) 80% 100%);
                 box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
             }
+
             .header-badge {
                 text-align: center;
                 margin-bottom: 16px;
                 position: relative;
             }
-            .phantom-icon {
-                font-size: 32px;
-                filter: drop-shadow(0 0 8px var(--gold-glow));
-                margin-bottom: 4px;
+
+            /* นำตราอาร์ม PHANTOM มาแสดงเป็นศูนย์กลางพร้อมแสงกระทบสมจริง */
+            .phantom-patch-frame {
+                width: 76px;
+                height: 76px;
+                margin: 0 auto 8px auto;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(0,0,0,0) 70%);
+                filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 8px rgba(212, 175, 55, 0.35));
             }
+            .phantom-patch-frame img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
             .title-main {
                 font-size: 19px;
                 font-weight: 700;
@@ -172,7 +201,6 @@ def get_form():
             }
             textarea { resize: vertical; min-height: 52px; }
 
-            /* Grid 5 ช่องสี่เหลี่ยมจัตุรัสสำหรับรูปภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -249,9 +277,12 @@ def get_form():
             <div class="thai-ribbon"></div>
             
             <div class="header-badge">
-                <div class="phantom-icon">🦅</div>
+                <div class="phantom-patch-frame">
+                    <img src="https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=300&q=80" style="display:none;" alt="">
+                    <div style="font-size: 38px;">🦅</div>
+                </div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
-                <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
+                <div class="title-sub">FPV RECON & TACTICAL STRIKE FEED</div>
             </div>
 
             <div class="grid-2">
