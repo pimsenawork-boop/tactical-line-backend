@@ -51,9 +51,10 @@ def get_form():
             :root {
                 --gold-accent: #d4af37;
                 --gold-glow: rgba(212, 175, 55, 0.4);
-                --panel-bg: rgba(14, 18, 16, 0.85);
-                --input-bg: rgba(7, 10, 8, 0.7);
-                --border-subtle: rgba(212, 175, 55, 0.3);
+                --olive-dark: #121915;
+                --panel-bg: rgba(14, 19, 16, 0.78);
+                --input-bg: rgba(8, 12, 10, 0.65);
+                --border-subtle: rgba(212, 175, 55, 0.25);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
             }
@@ -62,13 +63,12 @@ def get_form():
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
-                background-color: #060907;
-                /* พื้นหลังแนวสมรภูมิรบ โทนมืดสมูทตา */
+                background-color: #0b0d0c;
                 background-image: 
-                    radial-gradient(circle at 50% 20%, rgba(0, 255, 196, 0.08) 0%, transparent 55%),
-                    radial-gradient(circle at 50% 85%, rgba(0, 0, 0, 0.95) 0%, transparent 80%),
-                    linear-gradient(180deg, rgba(6, 10, 8, 0.78) 0%, rgba(4, 7, 5, 0.94) 100%),
-                    url('https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1920&q=80');
+                    radial-gradient(circle at 50% 20%, rgba(28, 44, 89, 0.35) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(165, 28, 36, 0.25) 0%, transparent 40%),
+                    linear-gradient(180deg, rgba(8, 12, 10, 0.88) 0%, rgba(5, 8, 6, 0.94) 100%),
+                    url('https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1920&q=80');
                 background-size: cover;
                 background-position: center;
                 background-attachment: fixed;
@@ -78,27 +78,25 @@ def get_form():
                 justify-content: center;
                 align-items: center;
             }
-
             .hud-container {
                 width: 100%;
                 max-width: 520px;
                 background: var(--panel-bg);
                 border: 1px solid var(--border-subtle);
-                border-radius: 14px;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 20px rgba(212, 175, 55, 0.12);
-                padding: 24px 22px;
-                backdrop-filter: blur(18px);
-                -webkit-backdrop-filter: blur(18px);
+                border-radius: 12px;
+                box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.1);
+                padding: 22px 20px;
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
                 position: relative;
                 overflow: hidden;
             }
-
-            /* แถบริบบิ้นธงชาติไทยมุมบนขวา */
+            /* แถบธงชาติไทยมุมบนขวา */
             .thai-ribbon {
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 85px;
+                width: 70px;
                 height: 5px;
                 background: linear-gradient(90deg, 
                     var(--thai-red) 0% 20%, 
@@ -106,58 +104,37 @@ def get_form():
                     var(--thai-blue) 40% 60%, 
                     #fff 60% 80%, 
                     var(--thai-red) 80% 100%);
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+                box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
             }
-
             .header-badge {
                 text-align: center;
                 margin-bottom: 16px;
                 position: relative;
             }
-
-            /* ตราอาร์ม PHANTOM อยู่หัวข้อบนสุดตรงกลาง */
-            .patch-image-wrapper {
-                width: 110px;
-                height: 110px;
-                margin: 0 auto 10px auto;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 12px var(--gold-glow));
-                transition: transform 0.3s ease;
+            .phantom-icon {
+                font-size: 32px;
+                filter: drop-shadow(0 0 8px var(--gold-glow));
+                margin-bottom: 4px;
             }
-            .patch-image-wrapper:hover {
-                transform: scale(1.03);
-            }
-            .patch-image-wrapper img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 10px;
-            }
-
             .title-main {
-                font-size: 20px;
+                font-size: 19px;
                 font-weight: 700;
                 color: var(--gold-accent);
-                letter-spacing: 2.5px;
+                letter-spacing: 2px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 11px;
-                color: #8da196;
-                letter-spacing: 1.2px;
-                margin-top: 3px;
+                color: #8b9b92;
+                letter-spacing: 1px;
             }
-
             .grid-2 {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                gap: 10px;
             }
             .form-group {
                 margin-bottom: 12px;
@@ -167,17 +144,16 @@ def get_form():
                 font-size: 12px;
                 font-weight: 600;
                 color: #9cb1a5;
-                margin-bottom: 5px;
+                margin-bottom: 4px;
                 letter-spacing: 0.5px;
             }
-
             input, textarea {
                 width: 100%;
                 background: var(--input-bg);
-                border: 1px solid rgba(255, 255, 255, 0.09);
-                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 7px;
                 color: #ffffff;
-                padding: 10px 12px;
+                padding: 9px 12px;
                 font-family: 'Chakra Petch', sans-serif;
                 font-size: 13.5px;
                 transition: all 0.25s ease;
@@ -185,8 +161,8 @@ def get_form():
             input:focus, textarea:focus {
                 outline: none;
                 border-color: var(--gold-accent);
-                background: rgba(12, 18, 14, 0.92);
-                box-shadow: 0 0 12px var(--gold-glow);
+                background: rgba(12, 18, 14, 0.9);
+                box-shadow: 0 0 10px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
@@ -196,6 +172,7 @@ def get_form():
             }
             textarea { resize: vertical; min-height: 52px; }
 
+            /* Grid 5 ช่องสี่เหลี่ยมจัตุรัสสำหรับรูปภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -205,7 +182,7 @@ def get_form():
             .img-slot {
                 aspect-ratio: 1 / 1;
                 border: 1px dashed rgba(212, 175, 55, 0.35);
-                border-radius: 7px;
+                border-radius: 6px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -217,7 +194,7 @@ def get_form():
             }
             .img-slot:hover {
                 border-color: var(--gold-accent);
-                background: rgba(212, 175, 55, 0.1);
+                background: rgba(212, 175, 55, 0.08);
             }
             .img-slot img {
                 width: 100%;
@@ -226,7 +203,7 @@ def get_form():
             }
             .img-slot span {
                 font-size: 18px;
-                color: rgba(212, 175, 55, 0.65);
+                color: rgba(212, 175, 55, 0.6);
             }
             #file_input { display: none; }
 
@@ -235,20 +212,20 @@ def get_form():
                 background: linear-gradient(135deg, #a88424 0%, #614a10 100%);
                 border: 1px solid var(--gold-accent);
                 color: #fff;
-                padding: 12px;
+                padding: 11px;
                 font-size: 15px;
                 font-weight: 700;
                 letter-spacing: 2px;
                 cursor: pointer;
-                border-radius: 8px;
+                border-radius: 7px;
                 margin-top: 14px;
                 text-transform: uppercase;
-                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
                 transition: all 0.25s ease;
             }
             .btn-action:hover {
                 background: linear-gradient(135deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 18px var(--gold-glow);
+                box-shadow: 0 0 15px var(--gold-glow);
                 transform: translateY(-1px);
             }
             .btn-action:disabled {
@@ -262,8 +239,8 @@ def get_form():
             .status-tag {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 10.5px;
-                color: #8da196;
-                margin-top: 4px;
+                color: #9cb1a5;
+                margin-top: 3px;
             }
         </style>
     </head>
@@ -272,12 +249,7 @@ def get_form():
             <div class="thai-ribbon"></div>
             
             <div class="header-badge">
-                <!-- ตราอาร์ม PHANTOM ของแท้ด้านบน -->
-                <div class="patch-image-wrapper">
-                    <img src="https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=400&q=80" 
-                         onerror="this.src='https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=400&q=80'"
-                         alt="PHANTOM TACTICAL PATCH">
-                </div>
+                <div class="phantom-icon">🦅</div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
                 <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
             </div>
