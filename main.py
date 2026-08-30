@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, Request, HTTPException, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from linebot.v3 import WebhookHandler
 from linebot.v3.messaging import Configuration
@@ -37,6 +37,13 @@ class ReportPayload(BaseModel):
 def read_root():
     return {"status": "Tactical PHANTOM System Active"}
 
+# ให้บริการไฟล์รูปภาพพื้นหลังที่อัปโหลด (bg.jpg)
+@app.get("/bg.jpg")
+def get_background_image():
+    if os.path.exists("bg.jpg"):
+        return FileResponse("bg.jpg")
+    return Response(status_code=404)
+
 @app.get("/form", response_class=HTMLResponse)
 def get_form():
     return """
@@ -51,26 +58,26 @@ def get_form():
             :root {
                 --gold-accent: #d4af37;
                 --gold-glow: rgba(212, 175, 55, 0.4);
-                --olive-dark: #121915;
-                --panel-bg: rgba(14, 19, 16, 0.78);
-                --input-bg: rgba(8, 12, 10, 0.65);
-                --border-subtle: rgba(212, 175, 55, 0.25);
+                --panel-bg: rgba(14, 18, 16, 0.85);
+                --input-bg: rgba(7, 10, 8, 0.72);
+                --border-subtle: rgba(212, 175, 55, 0.3);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
             }
             * { box-sizing: border-box; }
+            
+            /* ดึงภาพ bg.jpg จาก Server ตัวเองโดยตรง */
             body {
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
-                background-color: #0b0d0c;
+                background-color: #060907;
                 background-image: 
-                    radial-gradient(circle at 50% 20%, rgba(28, 44, 89, 0.35) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 80%, rgba(165, 28, 36, 0.25) 0%, transparent 40%),
-                    linear-gradient(180deg, rgba(8, 12, 10, 0.88) 0%, rgba(5, 8, 6, 0.94) 100%),
-                    url('https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1920&q=80');
+                    linear-gradient(rgba(5, 8, 6, 0.55), rgba(5, 8, 6, 0.75)),
+                    url('/bg.jpg');
                 background-size: cover;
-                background-position: center;
+                background-position: center center;
+                background-repeat: no-repeat;
                 background-attachment: fixed;
                 color: #e2e8e5;
                 min-height: 100vh;
@@ -78,25 +85,26 @@ def get_form():
                 justify-content: center;
                 align-items: center;
             }
+
             .hud-container {
                 width: 100%;
                 max-width: 520px;
                 background: var(--panel-bg);
                 border: 1px solid var(--border-subtle);
-                border-radius: 12px;
-                box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.1);
-                padding: 22px 20px;
+                border-radius: 14px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.15);
+                padding: 24px 22px;
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
                 position: relative;
                 overflow: hidden;
             }
-            /* แถบธงชาติไทยมุมบนขวา */
+
             .thai-ribbon {
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 70px;
+                width: 85px;
                 height: 5px;
                 background: linear-gradient(90deg, 
                     var(--thai-red) 0% 20%, 
@@ -104,37 +112,36 @@ def get_form():
                     var(--thai-blue) 40% 60%, 
                     #fff 60% 80%, 
                     var(--thai-red) 80% 100%);
-                box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
             }
+
             .header-badge {
                 text-align: center;
                 margin-bottom: 16px;
                 position: relative;
             }
-            .phantom-icon {
-                font-size: 32px;
-                filter: drop-shadow(0 0 8px var(--gold-glow));
-                margin-bottom: 4px;
-            }
+
             .title-main {
-                font-size: 19px;
+                font-size: 20px;
                 font-weight: 700;
                 color: var(--gold-accent);
-                letter-spacing: 2px;
+                letter-spacing: 2.5px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 11px;
-                color: #8b9b92;
-                letter-spacing: 1px;
+                color: #8da196;
+                letter-spacing: 1.2px;
+                margin-top: 3px;
             }
+
             .grid-2 {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                gap: 12px;
             }
             .form-group {
                 margin-bottom: 12px;
@@ -144,16 +151,17 @@ def get_form():
                 font-size: 12px;
                 font-weight: 600;
                 color: #9cb1a5;
-                margin-bottom: 4px;
+                margin-bottom: 5px;
                 letter-spacing: 0.5px;
             }
+
             input, textarea {
                 width: 100%;
                 background: var(--input-bg);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 7px;
+                border: 1px solid rgba(255, 255, 255, 0.09);
+                border-radius: 8px;
                 color: #ffffff;
-                padding: 9px 12px;
+                padding: 10px 12px;
                 font-family: 'Chakra Petch', sans-serif;
                 font-size: 13.5px;
                 transition: all 0.25s ease;
@@ -161,8 +169,8 @@ def get_form():
             input:focus, textarea:focus {
                 outline: none;
                 border-color: var(--gold-accent);
-                background: rgba(12, 18, 14, 0.9);
-                box-shadow: 0 0 10px var(--gold-glow);
+                background: rgba(12, 18, 14, 0.95);
+                box-shadow: 0 0 12px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
@@ -172,7 +180,6 @@ def get_form():
             }
             textarea { resize: vertical; min-height: 52px; }
 
-            /* Grid 5 ช่องสี่เหลี่ยมจัตุรัสสำหรับรูปภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -182,7 +189,7 @@ def get_form():
             .img-slot {
                 aspect-ratio: 1 / 1;
                 border: 1px dashed rgba(212, 175, 55, 0.35);
-                border-radius: 6px;
+                border-radius: 7px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -194,7 +201,7 @@ def get_form():
             }
             .img-slot:hover {
                 border-color: var(--gold-accent);
-                background: rgba(212, 175, 55, 0.08);
+                background: rgba(212, 175, 55, 0.1);
             }
             .img-slot img {
                 width: 100%;
@@ -203,7 +210,7 @@ def get_form():
             }
             .img-slot span {
                 font-size: 18px;
-                color: rgba(212, 175, 55, 0.6);
+                color: rgba(212, 175, 55, 0.65);
             }
             #file_input { display: none; }
 
@@ -212,20 +219,20 @@ def get_form():
                 background: linear-gradient(135deg, #a88424 0%, #614a10 100%);
                 border: 1px solid var(--gold-accent);
                 color: #fff;
-                padding: 11px;
+                padding: 12px;
                 font-size: 15px;
                 font-weight: 700;
                 letter-spacing: 2px;
                 cursor: pointer;
-                border-radius: 7px;
+                border-radius: 8px;
                 margin-top: 14px;
                 text-transform: uppercase;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
                 transition: all 0.25s ease;
             }
             .btn-action:hover {
                 background: linear-gradient(135deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 15px var(--gold-glow);
+                box-shadow: 0 0 18px var(--gold-glow);
                 transform: translateY(-1px);
             }
             .btn-action:disabled {
@@ -239,8 +246,8 @@ def get_form():
             .status-tag {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 10.5px;
-                color: #9cb1a5;
-                margin-top: 3px;
+                color: #8da196;
+                margin-top: 4px;
             }
         </style>
     </head>
@@ -249,7 +256,6 @@ def get_form():
             <div class="thai-ribbon"></div>
             
             <div class="header-badge">
-                <div class="phantom-icon">🦅</div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
                 <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
             </div>
