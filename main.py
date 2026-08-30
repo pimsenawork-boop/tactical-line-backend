@@ -7,8 +7,24 @@ from typing import List, Optional
 from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
+
+# LINE Bot SDK v3
 from linebot.v3 import WebhookHandler
-from linebot.v3.messaging import Configuration
+from linebot.v3.exceptions import InvalidSignatureError
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    PushMessageRequest,
+    TextMessage,
+    FlexMessage,
+    FlexContainer
+)
+from linebot.v3.webhooks import (
+    MessageEvent,
+    TextMessageContent,
+    JoinEvent
+)
 from supabase import create_client, Client
 
 app = FastAPI()
@@ -17,6 +33,9 @@ CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", "")
 CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
+
+# LINE Group ID เป้าหมาย (หากไม่ตั้ง จะดึงกลุ่มล่าสุดจากฐานข้อมูลอัตโนมัติ)
+TARGET_GROUP_ID = os.getenv("LINE_TARGET_GROUP_ID", "")
 
 REPORT_PASSCODE = "phantom2"
 ADMIN_PASSCODE = "phantomadmin"
@@ -128,192 +147,108 @@ def get_form():
 
             .thai-ribbon {
                 position: absolute;
-                top: 0;
-                right: 0;
-                width: 90px;
-                height: 4px;
-                background: linear-gradient(90deg, 
-                    var(--thai-red) 0% 20%, 
-                    #fff 20% 40%, 
-                    var(--thai-blue) 40% 60%, 
-                    #fff 60% 80%, 
-                    var(--thai-red) 80% 100%);
+                top: 0; right: 0;
+                width: 90px; height: 4px;
+                background: linear-gradient(90deg, var(--thai-red) 0% 20%, #fff 20% 40%, var(--thai-blue) 40% 60%, #fff 60% 80%, var(--thai-red) 80% 100%);
             }
 
-            .header-badge {
-                text-align: center;
-                margin-bottom: 18px;
-                position: relative;
-            }
-
+            .header-badge { text-align: center; margin-bottom: 18px; position: relative; }
             .title-main {
-                font-size: 21px;
-                font-weight: 700;
-                color: var(--gold-accent);
-                letter-spacing: 2.5px;
-                text-transform: uppercase;
-                margin: 0;
+                font-size: 21px; font-weight: 700; color: var(--gold-accent);
+                letter-spacing: 2.5px; text-transform: uppercase; margin: 0;
                 text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 11px;
-                color: #8da196;
-                letter-spacing: 1.2px;
-                margin-top: 3px;
+                font-family: 'Share Tech Mono', monospace; font-size: 11px;
+                color: #8da196; letter-spacing: 1.2px; margin-top: 3px;
             }
 
-            .grid-2 {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            .form-group {
-                margin-bottom: 12px;
-            }
+            .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .form-group { margin-bottom: 12px; }
             label {
-                display: block;
-                font-size: 12.5px;
-                font-weight: 600;
-                color: #a2b5aa;
-                margin-bottom: 5px;
-                letter-spacing: 0.5px;
+                display: block; font-size: 12.5px; font-weight: 600;
+                color: #a2b5aa; margin-bottom: 5px; letter-spacing: 0.5px;
             }
 
             input, textarea, select {
                 width: 100%;
-                background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.8), rgba(5, 8, 6, 0.9)),
-                    url('/bg.jpg');
-                background-size: cover;
-                background-position: center;
+                background-image: linear-gradient(rgba(5, 8, 6, 0.8), rgba(5, 8, 6, 0.9)), url('/bg.jpg');
+                background-size: cover; background-position: center;
                 border: 1px solid rgba(212, 175, 55, 0.3);
-                border-radius: 8px;
-                color: #ffffff;
-                padding: 10px 12px;
-                font-family: 'Chakra Petch', sans-serif;
-                font-size: 14px;
-                transition: all 0.25s ease;
+                border-radius: 8px; color: #ffffff; padding: 10px 12px;
+                font-family: 'Chakra Petch', sans-serif; font-size: 14px; transition: all 0.25s ease;
             }
             input:focus, textarea:focus, select:focus {
-                outline: none;
-                border-color: var(--gold-accent);
-                background-image: 
-                    linear-gradient(rgba(12, 18, 14, 0.75), rgba(12, 18, 14, 0.9)),
-                    url('/bg.jpg');
+                outline: none; border-color: var(--gold-accent);
+                background-image: linear-gradient(rgba(12, 18, 14, 0.75), rgba(12, 18, 14, 0.9)), url('/bg.jpg');
                 box-shadow: 0 0 12px var(--gold-glow);
             }
             .readonly-input {
-                font-family: 'Share Tech Mono', monospace;
-                color: #7ee0ad;
-                background-image: 
-                    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.85)),
-                    url('/bg.jpg');
+                font-family: 'Share Tech Mono', monospace; color: #7ee0ad;
+                background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.85)), url('/bg.jpg');
                 border-color: rgba(255, 255, 255, 0.08);
             }
             .mgrs-input {
-                font-family: 'Share Tech Mono', monospace;
-                color: var(--mgrs-green) !important;
-                font-weight: 700;
-                letter-spacing: 1.2px;
-                background-image: 
-                    linear-gradient(rgba(0, 20, 15, 0.75), rgba(0, 15, 10, 0.9)),
-                    url('/bg.jpg');
+                font-family: 'Share Tech Mono', monospace; color: var(--mgrs-green) !important;
+                font-weight: 700; letter-spacing: 1.2px;
+                background-image: linear-gradient(rgba(0, 20, 15, 0.75), rgba(0, 15, 10, 0.9)), url('/bg.jpg');
                 border-color: rgba(0, 255, 204, 0.35);
             }
             textarea { resize: vertical; min-height: 55px; }
 
-            .gps-tools {
-                display: grid;
-                grid-template-columns: 1fr 1.2fr 1fr;
-                gap: 8px;
-                margin-top: 6px;
-            }
+            .gps-tools { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px; margin-top: 6px; }
             .tool-btn {
                 background: linear-gradient(180deg, rgba(30, 42, 35, 0.9) 0%, rgba(15, 22, 18, 0.9) 100%);
-                border: 1px solid rgba(212, 175, 55, 0.35);
-                color: var(--gold-accent);
-                padding: 9px 6px;
-                font-size: 12px;
-                font-weight: 600;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: 0.2s;
-                text-align: center;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
+                border: 1px solid rgba(212, 175, 55, 0.35); color: var(--gold-accent);
+                padding: 9px 6px; font-size: 12px; font-weight: 600; border-radius: 8px;
+                cursor: pointer; transition: 0.2s; text-align: center;
+                display: flex; align-items: center; justify-content: center; gap: 4px;
             }
-            .tool-btn:hover {
-                border-color: var(--gold-accent);
-                box-shadow: 0 0 10px var(--gold-glow);
-                color: #fff;
-            }
+            .tool-btn:hover { border-color: var(--gold-accent); box-shadow: 0 0 10px var(--gold-glow); color: #fff; }
             .tool-btn:active { transform: scale(0.96); }
             .tool-btn.highlight {
                 border-color: var(--gold-accent);
                 background: linear-gradient(180deg, rgba(212, 175, 55, 0.25) 0%, rgba(160, 130, 30, 0.2) 100%);
             }
 
-            /* --- MAP MODAL --- */
+            /* MAP MODAL */
             #map-modal {
-                display: none;
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0, 0, 0, 0.8);
-                backdrop-filter: blur(8px);
-                z-index: 10000;
-                opacity: 0;
-                transition: opacity 0.25s ease;
+                display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); z-index: 10000;
+                opacity: 0; transition: opacity 0.25s ease;
             }
             #map-modal.show { display: flex; opacity: 1; }
-            .map-app-container {
-                position: relative;
-                width: 100%; height: 100%;
-                display: flex; flex-direction: column;
-            }
+            .map-app-container { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
             #tactical-map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; z-index: 1; }
 
             .map-top-bar {
-                position: absolute;
-                top: 15px; left: 15px; right: 15px;
-                z-index: 1000;
+                position: absolute; top: 15px; left: 15px; right: 15px; z-index: 1000;
                 display: flex; flex-direction: column; gap: 8px;
             }
             .map-top-row { display: flex; gap: 8px; }
             .search-box-wrapper {
-                flex: 1;
-                background: rgba(18, 24, 20, 0.94);
-                backdrop-filter: blur(12px);
-                border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 25px;
+                flex: 1; background: rgba(18, 24, 20, 0.94); backdrop-filter: blur(12px);
+                border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 25px;
                 display: flex; align-items: center; padding: 4px 14px;
             }
             .search-box-wrapper input { background: transparent; border: none; padding: 6px 8px; font-size: 14px; color: #fff; }
             .search-box-wrapper input:focus { background: transparent; border: none; }
             .btn-circle-icon {
-                width: 44px; height: 44px; border-radius: 50%;
-                background: rgba(18, 24, 20, 0.94);
-                border: 1px solid rgba(212, 175, 55, 0.4);
-                color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;
+                width: 44px; height: 44px; border-radius: 50%; background: rgba(18, 24, 20, 0.94);
+                border: 1px solid rgba(212, 175, 55, 0.4); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer;
             }
 
             .provider-selector-bar {
-                background: rgba(18, 24, 20, 0.94);
-                border: 1px solid rgba(212, 175, 55, 0.4);
+                background: rgba(18, 24, 20, 0.94); border: 1px solid rgba(212, 175, 55, 0.4);
                 border-radius: 10px; padding: 4px 10px;
             }
             .provider-selector-bar select { background: transparent; border: none; color: var(--gold-accent); font-size: 12.5px; font-weight: 600; }
 
-            .map-floating-controls {
-                position: absolute; right: 15px; bottom: 180px; z-index: 1000;
-            }
+            .map-floating-controls { position: absolute; right: 15px; bottom: 180px; z-index: 1000; }
             .center-pin-marker {
                 position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);
                 z-index: 100; pointer-events: none; text-align: center;
             }
-            .center-pin-marker.dragging { transform: translate(-50%, -120%) scale(1.1); }
             .pin-emoji-badge { font-size: 24px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
             .pin-shadow {
                 position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
@@ -322,11 +257,9 @@ def get_form():
 
             .map-bottom-sheet {
                 position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 1000;
-                background: rgba(12, 18, 14, 0.95);
-                backdrop-filter: blur(16px);
-                border: 1.5px solid var(--border-subtle);
-                border-radius: 16px; padding: 14px 16px;
-                display: flex; flex-direction: column; gap: 10px;
+                background: rgba(12, 18, 14, 0.95); backdrop-filter: blur(16px);
+                border: 1.5px solid var(--border-subtle); border-radius: 16px;
+                padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
             }
             .sheet-row-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
             .radius-control-bar {
@@ -344,16 +277,14 @@ def get_form():
             .coord-mgrs-val { font-family: 'Share Tech Mono', monospace; font-size: 13.5px; font-weight: 700; color: var(--mgrs-green); margin-top: 1px; }
             .btn-confirm-pin {
                 background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
-                border: 1px solid var(--gold-accent);
-                color: #000; font-weight: 700; font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer; text-transform: uppercase;
+                border: 1px solid var(--gold-accent); color: #000; font-weight: 700;
+                font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer; text-transform: uppercase;
             }
 
             .img-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 6px; }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.65), rgba(5, 8, 6, 0.75)),
-                    url('/bg.jpg');
+                background-image: linear-gradient(rgba(5, 8, 6, 0.65), rgba(5, 8, 6, 0.75)), url('/bg.jpg');
                 background-size: cover; background-position: center;
                 border: 1px dashed rgba(212, 175, 55, 0.4);
                 border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative;
@@ -368,10 +299,10 @@ def get_form():
             .img-slot.has-img .btn-remove-img { display: block; }
 
             .btn-action {
-                width: 100%;
-                background: linear-gradient(180deg, #d4af37 0%, #7d6017 100%);
-                border: 1px solid var(--gold-accent);
-                color: #000; padding: 13px; font-size: 15px; font-weight: 700; letter-spacing: 2px; cursor: pointer; border-radius: 10px; margin-top: 15px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); transition: all 0.25s ease;
+                width: 100%; background: linear-gradient(180deg, #d4af37 0%, #7d6017 100%);
+                border: 1px solid var(--gold-accent); color: #000; padding: 13px;
+                font-size: 15px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+                border-radius: 10px; margin-top: 15px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); transition: all 0.25s ease;
             }
             .btn-action:hover { background: linear-gradient(180deg, #f5d77f 0%, #a88424 100%); box-shadow: 0 0 15px var(--gold-glow); transform: translateY(-1px); }
             .btn-action:disabled { background: #252826; border-color: #3b403d; color: #6a736e; cursor: not-allowed; box-shadow: none; transform: none; }
@@ -644,12 +575,8 @@ def get_form():
                 if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
                 if (r > 0 && map) {
                     radiusCircle = L.circle([currentPinLat, currentPinLon], {
-                        radius: r,
-                        color: '#ff3b30',
-                        fillColor: '#ff3b30',
-                        fillOpacity: 0.22,
-                        weight: 2,
-                        dashArray: '4, 6'
+                        radius: r, color: '#ff3b30', fillColor: '#ff3b30',
+                        fillOpacity: 0.22, weight: 2, dashArray: '4, 6'
                     }).addTo(map);
                 }
                 document.getElementById('danger_radius').value = radiusVal;
@@ -662,8 +589,7 @@ def get_form():
 
                 if (!map) {
                     map = L.map('tactical-map', {
-                        zoomControl: false,
-                        attributionControl: false
+                        zoomControl: false, attributionControl: false
                     }).setView([currentPinLat, currentPinLon], 16);
 
                     currentLayer = mapLayers.google_sat;
@@ -671,10 +597,7 @@ def get_form():
 
                     const pinElement = document.getElementById('center_pin');
 
-                    map.on('movestart', () => {
-                        pinElement.classList.add('dragging');
-                    });
-
+                    map.on('movestart', () => { pinElement.classList.add('dragging'); });
                     map.on('move', () => {
                         const center = map.getCenter();
                         currentPinLat = center.lat;
@@ -684,10 +607,7 @@ def get_form():
                         document.getElementById('sheet_mgrs').innerText = `MGRS: ${mgrsText}`;
                         if (radiusCircle) { radiusCircle.setLatLng(center); }
                     });
-
-                    map.on('moveend', () => {
-                        pinElement.classList.remove('dragging');
-                    });
+                    map.on('moveend', () => { pinElement.classList.remove('dragging'); });
                 } else {
                     map.setView([currentPinLat, currentPinLon], 16);
                 }
@@ -721,10 +641,7 @@ def get_form():
             function locateUserOnMap() {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((pos) => {
-                        map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, {
-                            animate: true,
-                            duration: 1.2
-                        });
+                        map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { animate: true, duration: 1.2 });
                     }, null, { enableHighAccuracy: true });
                 }
             }
@@ -742,9 +659,7 @@ def get_form():
                     } else {
                         alert('ไม่พบสถานที่ดังกล่าว กรุณาลองค้นหาด้วยชื่ออื่น');
                     }
-                } catch (err) {
-                    console.log("Search error", err);
-                }
+                } catch (err) {}
             }
 
             function confirmCenterPin() {
@@ -786,16 +701,10 @@ def get_form():
                 const slot = document.getElementById(`slot-${index}`);
                 if (imagesArray[index]) {
                     slot.classList.add('has-img');
-                    slot.innerHTML = `
-                        <img src="${imagesArray[index]}">
-                        <div class="btn-remove-img" onclick="removeImage(event, ${index})">✕</div>
-                    `;
+                    slot.innerHTML = `<img src="${imagesArray[index]}"><div class="btn-remove-img" onclick="removeImage(event, ${index})">✕</div>`;
                 } else {
                     slot.classList.remove('has-img');
-                    slot.innerHTML = `
-                        <span>+</span>
-                        <div class="btn-remove-img" onclick="removeImage(event, ${index})">✕</div>
-                    `;
+                    slot.innerHTML = `<span>+</span><div class="btn-remove-img" onclick="removeImage(event, ${index})">✕</div>`;
                 }
             }
 
@@ -815,10 +724,9 @@ def get_form():
                 if (!passcode) { alert('กรุณากรอกรหัสผ่านความปลอดภัย'); return; }
 
                 const validImages = imagesArray.filter(img => img !== null);
-
                 const btn = document.getElementById('submit_btn');
                 btn.disabled = true;
-                btn.innerText = "กำลังส่งข้อมูล...";
+                btn.innerText = "กำลังส่งข้อมูลเข้าศูนย์ยุทธการ...";
 
                 try {
                     const res = await fetch('/api/submit-report', {
@@ -840,7 +748,7 @@ def get_form():
 
                     const data = await res.json();
                     if (res.ok) {
-                        alert('✅ บันทึกรายงานเข้าสู่ระบบสำเร็จ');
+                        alert('✅ บันทึกรายงานและส่งข้อมูลเข้ากลุ่ม LINE สำเร็จ');
                         location.reload();
                     } else {
                         alert('❌ ' + data.detail);
@@ -858,7 +766,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD พร้อมระบบแสดงภาพสมบูรณ์) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -881,291 +789,96 @@ def get_map_dashboard():
             body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Chakra Petch', sans-serif; background: #060907; }
             #dashboard-map { width: 100%; height: 100%; }
 
-            /* หน้าต่างตรวจสอบสิทธิ์ความปลอดภัย */
             #auth-gate {
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
                 background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.96)), url('/bg_new.jpg') center/cover;
-                z-index: 99999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 20px;
+                z-index: 99999; display: flex; justify-content: center; align-items: center; padding: 20px;
             }
             .gate-box {
-                width: 100%;
-                max-width: 420px;
-                background: rgba(10, 15, 12, 0.95);
-                border: 1.5px solid var(--gold-accent);
-                border-radius: 16px;
-                padding: 34px 26px;
-                box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
-                text-align: center;
-                backdrop-filter: blur(14px);
+                width: 100%; max-width: 420px; background: rgba(10, 15, 12, 0.95);
+                border: 1.5px solid var(--gold-accent); border-radius: 16px; padding: 34px 26px;
+                box-shadow: 0 0 40px rgba(212, 175, 55, 0.25); text-align: center; backdrop-filter: blur(14px);
             }
-            .gate-title {
-                color: var(--gold-accent);
-                font-size: 21px;
-                font-weight: 700;
-                letter-spacing: 2px;
-                margin-bottom: 6px;
-            }
-            .gate-subtitle {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 11px;
-                color: #8da196;
-                margin-bottom: 24px;
-                letter-spacing: 1px;
-            }
+            .gate-title { color: var(--gold-accent); font-size: 21px; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+            .gate-subtitle { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #8da196; margin-bottom: 24px; letter-spacing: 1px; }
             .gate-input {
-                width: 100%;
-                background: rgba(5, 8, 6, 0.9);
-                border: 1.5px solid rgba(212, 175, 55, 0.4);
-                border-radius: 10px;
-                color: #fff;
-                padding: 13px;
-                font-size: 18px;
-                text-align: center;
-                font-family: 'Chakra Petch', sans-serif;
-                margin-bottom: 18px;
-                outline: none;
-                letter-spacing: 3px;
+                width: 100%; background: rgba(5, 8, 6, 0.9); border: 1.5px solid rgba(212, 175, 55, 0.4);
+                border-radius: 10px; color: #fff; padding: 13px; font-size: 18px; text-align: center;
+                font-family: 'Chakra Petch', sans-serif; margin-bottom: 18px; outline: none; letter-spacing: 3px;
             }
-            .gate-input:focus {
-                border-color: var(--gold-accent);
-                box-shadow: 0 0 15px var(--gold-glow);
-            }
+            .gate-input:focus { border-color: var(--gold-accent); box-shadow: 0 0 15px var(--gold-glow); }
             .gate-btn {
-                width: 100%;
-                background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
-                border: 1px solid var(--gold-accent);
-                color: #000;
-                font-weight: 700;
-                font-size: 14px;
-                padding: 13px;
-                border-radius: 10px;
-                cursor: pointer;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+                width: 100%; background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
+                border: 1px solid var(--gold-accent); color: #000; font-weight: 700; font-size: 14px;
+                padding: 13px; border-radius: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 1.5px;
             }
-            .gate-btn:active { transform: scale(0.98); }
-            
+
             .header-bar {
-                position: absolute;
-                top: 15px;
-                left: 15px;
-                z-index: 1000;
-                background: rgba(10, 15, 12, 0.94);
-                border: 1.5px solid #d4af37;
-                border-radius: 12px;
-                padding: 10px 18px;
-                backdrop-filter: blur(8px);
-                box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+                position: absolute; top: 15px; left: 15px; z-index: 1000;
+                background: rgba(10, 15, 12, 0.94); border: 1.5px solid #d4af37;
+                border-radius: 12px; padding: 10px 18px; backdrop-filter: blur(8px);
             }
             .header-bar h2 { font-size: 16px; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
             .header-bar p { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffcc; margin: 2px 0 0 0; }
 
             .map-switch-top {
-                position: absolute;
-                top: 15px;
-                right: 15px;
-                z-index: 1000;
-                background: rgba(10, 15, 12, 0.94);
-                border: 1.5px solid #d4af37;
-                border-radius: 10px;
-                padding: 6px 12px;
-                backdrop-filter: blur(8px);
+                position: absolute; top: 15px; right: 15px; z-index: 1000;
+                background: rgba(10, 15, 12, 0.94); border: 1.5px solid #d4af37;
+                border-radius: 10px; padding: 6px 12px; backdrop-filter: blur(8px);
             }
-            .map-switch-top select {
-                background: transparent;
-                border: none;
-                color: #d4af37;
-                font-family: 'Chakra Petch', sans-serif;
-                font-size: 13px;
-                font-weight: 700;
-                cursor: pointer;
-                outline: none;
-            }
+            .map-switch-top select { background: transparent; border: none; color: #d4af37; font-family: 'Chakra Petch', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; outline: none; }
 
             .tactical-filter-bar {
-                position: absolute;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 1000;
-                background: rgba(10, 16, 13, 0.95);
-                backdrop-filter: blur(14px);
-                border: 1.5px solid rgba(212, 175, 55, 0.4);
-                border-radius: 35px;
-                padding: 6px 12px;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.85);
-                max-width: 95vw;
-                overflow-x: auto;
+                position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
+                background: rgba(10, 16, 13, 0.95); backdrop-filter: blur(14px);
+                border: 1.5px solid rgba(212, 175, 55, 0.4); border-radius: 35px;
+                padding: 6px 12px; display: flex; align-items: center; gap: 6px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.85); max-width: 95vw; overflow-x: auto;
             }
             .tactical-filter-bar::-webkit-scrollbar { display: none; }
-            
             .filter-chip {
-                background: rgba(25, 38, 30, 0.85);
-                border: 1px solid rgba(212, 175, 55, 0.3);
-                color: #cfd8dc;
-                font-size: 12px;
-                font-weight: 600;
-                padding: 6px 12px;
-                border-radius: 20px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                white-space: nowrap;
-                transition: 0.2s;
+                background: rgba(25, 38, 30, 0.85); border: 1px solid rgba(212, 175, 55, 0.3);
+                color: #cfd8dc; font-size: 12px; font-weight: 600; padding: 6px 12px;
+                border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px; white-space: nowrap; transition: 0.2s;
             }
-            .filter-chip:hover {
-                border-color: var(--gold-accent);
-                color: #fff;
-                transform: translateY(-2px);
-            }
-            .filter-chip.active {
-                background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
-                border-color: #fff;
-                color: #000;
-                font-weight: 700;
-                box-shadow: 0 0 12px var(--gold-glow);
-            }
-            .filter-count {
-                background: rgba(0, 0, 0, 0.4);
-                color: inherit;
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 10px;
-                padding: 1px 6px;
-                border-radius: 10px;
-            }
+            .filter-chip.active { background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%); border-color: #fff; color: #000; font-weight: 700; }
+            .filter-count { background: rgba(0, 0, 0, 0.4); color: inherit; font-family: 'Share Tech Mono', monospace; font-size: 10px; padding: 1px 6px; border-radius: 10px; }
 
             .leaflet-popup-content-wrapper {
-                background: rgba(10, 15, 12, 0.96) !important;
-                border: 1.5px solid #d4af37 !important;
-                border-radius: 12px !important;
-                color: #fff !important;
-                font-family: 'Chakra Petch', sans-serif !important;
+                background: rgba(10, 15, 12, 0.96) !important; border: 1.5px solid #d4af37 !important;
+                border-radius: 12px !important; color: #fff !important; font-family: 'Chakra Petch', sans-serif !important;
                 backdrop-filter: blur(12px);
-                box-shadow: 0 10px 30px rgba(0,0,0,0.9) !important;
             }
             .leaflet-popup-tip { background: #d4af37 !important; }
 
-            /* สไตล์แกลเลอรีรูปภาพในกล่อง Popup */
             .popup-gallery {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
-                gap: 6px;
-                margin-top: 8px;
-                padding-top: 6px;
-                border-top: 1px dashed rgba(212,175,55,0.3);
+                display: grid; grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+                gap: 6px; margin-top: 8px; padding-top: 6px; border-top: 1px dashed rgba(212,175,55,0.3);
             }
-            .popup-thumb {
-                width: 100%;
-                aspect-ratio: 1 / 1;
-                border-radius: 6px;
-                border: 1px solid rgba(212,175,55,0.4);
-                object-fit: cover;
-                cursor: pointer;
-                transition: 0.2s;
-            }
-            .popup-thumb:hover {
-                border-color: #fff;
-                box-shadow: 0 0 10px var(--gold-glow);
-                transform: scale(1.04);
-            }
+            .popup-thumb { width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; border: 1px solid rgba(212,175,55,0.4); object-fit: cover; cursor: pointer; }
 
-            /* หน้าต่างดูภาพขยายใหญ่ (Photo Modal Lightbox) */
             #photo-lightbox {
-                display: none;
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0, 0, 0, 0.92);
-                backdrop-filter: blur(10px);
-                z-index: 100000;
-                justify-content: center;
-                align-items: center;
-                padding: 20px;
+                display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(10px); z-index: 100000;
+                justify-content: center; align-items: center; padding: 20px;
             }
-            #lightbox-img {
-                max-width: 90vw;
-                max-height: 85vh;
-                border-radius: 12px;
-                border: 2px solid var(--gold-accent);
-                box-shadow: 0 0 35px rgba(0,0,0,0.9);
-            }
+            #lightbox-img { max-width: 90vw; max-height: 85vh; border-radius: 12px; border: 2px solid var(--gold-accent); }
             
-            .custom-tactical-pin {
-                font-size: 20px;
-                text-align: center;
-                filter: drop-shadow(0 2px 5px rgba(0,0,0,0.85));
-                cursor: pointer;
-                line-height: 20px;
-            }
-
-            .sitrep-box {
-                font-size: 12.5px;
-                line-height: 1.5;
-                color: #d8e2dc;
-            }
-            .sitrep-item {
-                margin-bottom: 6px;
-                padding-bottom: 4px;
-                border-bottom: 1px dashed rgba(212,175,55,0.2);
-            }
-            
-            .sitrep-label-red {
-                font-weight: 700;
-                color: var(--thai-red);
-                text-shadow: 0 0 6px rgba(255, 56, 56, 0.4);
-            }
+            .custom-tactical-pin { font-size: 20px; text-align: center; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.85)); cursor: pointer; line-height: 20px; }
+            .sitrep-box { font-size: 12.5px; line-height: 1.5; color: #d8e2dc; }
+            .sitrep-label-red { font-weight: 700; color: var(--thai-red); text-shadow: 0 0 6px rgba(255, 56, 56, 0.4); }
 
             .edit-box-input {
-                width: 100%;
-                background: rgba(5, 8, 6, 0.9);
-                border: 1px solid var(--gold-accent);
-                border-radius: 5px;
-                color: #fff;
-                padding: 6px 8px;
-                font-family: 'Chakra Petch', sans-serif;
-                font-size: 12.5px;
-                margin-top: 3px;
-                outline: none;
-            }
-            .edit-box-input:focus {
-                box-shadow: 0 0 8px var(--gold-glow);
+                width: 100%; background: rgba(5, 8, 6, 0.9); border: 1px solid var(--gold-accent);
+                border-radius: 5px; color: #fff; padding: 6px 8px; font-family: 'Chakra Petch', sans-serif; font-size: 12.5px; margin-top: 3px; outline: none;
             }
 
-            .admin-tools {
-                display: flex;
-                gap: 8px;
-                margin-top: 10px;
-                padding-top: 8px;
-                border-top: 1px solid rgba(212,175,55,0.4);
-            }
-            .btn-admin-act {
-                flex: 1;
-                padding: 7px 10px;
-                font-size: 11.5px;
-                font-weight: 700;
-                border-radius: 6px;
-                cursor: pointer;
-                border: 1px solid;
-                text-align: center;
-                transition: 0.2s;
-            }
+            .admin-tools { display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(212,175,55,0.4); }
+            .btn-admin-act { flex: 1; padding: 7px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid; text-align: center; }
             .btn-edit { background: rgba(212,175,55,0.2); border-color: var(--gold-accent); color: var(--gold-accent); }
-            .btn-edit:hover { background: rgba(212,175,55,0.4); color: #fff; }
             .btn-save { background: rgba(0,255,204,0.25); border-color: var(--mgrs-green); color: var(--mgrs-green); }
-            .btn-save:hover { background: rgba(0,255,204,0.45); color: #fff; }
             .btn-cancel { background: rgba(255,255,255,0.1); border-color: #8da196; color: #cfd8dc; }
-            .btn-cancel:hover { background: rgba(255,255,255,0.2); }
             .btn-del { background: rgba(229,57,53,0.2); border-color: #e53935; color: #ff6b6b; }
-            .btn-del:hover { background: rgba(229,57,53,0.4); color: #fff; }
         </style>
     </head>
     <body>
@@ -1179,7 +892,6 @@ def get_map_dashboard():
             </div>
         </div>
 
-        <!-- หน้าต่างขยายดูรูปภาพขนาดใหญ่ -->
         <div id="photo-lightbox" onclick="closeLightbox()">
             <img id="lightbox-img" src="" onclick="event.stopPropagation()">
         </div>
@@ -1286,7 +998,6 @@ def get_map_dashboard():
                         return;
                     }
                     const data = await res.json();
-                    
                     currentAdminKey = key;
 
                     document.getElementById('auth-gate').style.display = 'none';
@@ -1373,26 +1084,19 @@ def get_map_dashboard():
                                 const radiusMeters = parseInt(rMatch[1]);
                                 if (radiusMeters > 0) {
                                     L.circle([item.latitude, item.longitude], {
-                                        radius: radiusMeters,
-                                        color: '#ff3b30',
-                                        fillColor: '#ff3b30',
-                                        fillOpacity: 0.2,
-                                        weight: 1.5,
-                                        dashArray: '4, 6'
+                                        radius: radiusMeters, color: '#ff3b30', fillColor: '#ff3b30',
+                                        fillOpacity: 0.2, weight: 1.5, dashArray: '4, 6'
                                     }).addTo(mapLayersGroup);
                                 }
                             }
 
                             const customIcon = L.divIcon({
-                                className: 'custom-tactical-pin',
-                                html: emoji,
-                                iconSize: [22, 22],
-                                iconAnchor: [11, 11]
+                                className: 'custom-tactical-pin', html: emoji,
+                                iconSize: [22, 22], iconAnchor: [11, 11]
                             });
 
                             const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(mapLayersGroup);
                             
-                            // ดึงภาพถ่ายทั้งหมด (รองรับทั้งภาพเดี่ยว หรือคั่นด้วยจุลภาค)
                             let galleryHtml = "";
                             if (item.image_url && item.image_url.trim() !== "") {
                                 const imgUrls = item.image_url.split(",").map(u => u.trim()).filter(u => u !== "");
@@ -1579,7 +1283,152 @@ def delete_report(payload: DeleteReportPayload):
         print(f"Delete error: {e}")
         raise HTTPException(status_code=500, detail="ไม่สามารถลบข้อมูลได้")
 
-# API รับรายงานจากหน้าฟอร์ม (บันทึกรูปลง Supabase Storage และเก็บทุกลิงก์)
+# --- ฟังก์ชันสร้างการ์ด Flex Message และยิงเข้า LINE กลุ่มอัตโนมัติ ---
+def send_tactical_flex_to_line(payload: ReportPayload, time_str: str, image_urls: list):
+    if not CHANNEL_ACCESS_TOKEN:
+        return
+
+    # หา Group ID เป้าหมาย (ถ้าไม่มีใน env ให้ดึงจากฐานข้อมูล line_groups)
+    target_id = TARGET_GROUP_ID
+    if not target_id:
+        try:
+            grp_res = supabase.table("line_groups").select("group_id").order("created_at", desc=True).limit(1).execute()
+            if grp_res.data and len(grp_res.data) > 0:
+                target_id = grp_res.data[0].get("group_id")
+        except Exception as e:
+            print(f"Fetch target group error: {e}")
+
+    if not target_id:
+        print("⚠️ ไม่พบ LINE Group ID สำหรับยิงข้อความ (กรุณาดึงบอทเข้ากลุ่มแล้วพิมพ์ .id)")
+        return
+
+    icon_emoji = payload.tactical_icon.split(" ")[0] if payload.tactical_icon else "🎯"
+    mgrs_val = payload.mgrs if payload.mgrs else "N/A"
+    first_img = image_urls[0] if image_urls else None
+
+    # โครงสร้าง Flex Message ธีมยุทธวิธี
+    flex_json = {
+        "type": "bubble",
+        "size": "mega",
+        "styles": {
+            "header": {"backgroundColor": "#0d1410"},
+            "body": {"backgroundColor": "#060a08"},
+            "footer": {"backgroundColor": "#0d1410"}
+        },
+        "header": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": "PHANTOM SITREP FEED", "weight": "bold", "color": "#d4af37", "size": "xs", "flex": 1},
+                        {"type": "text", "text": "FLASH // PRIORITY", "weight": "bold", "color": "#ff3838", "size": "xxs", "align": "end"}
+                    ]
+                },
+                {"type": "text", "text": f"{icon_emoji} {payload.situation}", "weight": "bold", "color": "#ffffff", "size": "md", "margin": "sm"}
+            ]
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": "เวลาบันทึก:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3},
+                        {"type": "text", "text": time_str, "color": "#e0e6ed", "size": "xs", "flex": 7}
+                    ]
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": "สัญลักษณ์:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3},
+                        {"type": "text", "text": payload.tactical_icon, "color": "#e0e6ed", "size": "xs", "flex": 7}
+                    ]
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": "พิกัด MGRS:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3},
+                        {"type": "text", "text": mgrs_val, "color": "#00ffcc", "size": "xs", "weight": "bold", "flex": 7}
+                    ]
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                        {"type": "text", "text": "พิกัด GPS:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3},
+                        {"type": "text", "text": f"{payload.latitude:.6f}, {payload.longitude:.6f}", "color": "#7ee0ad", "size": "xs", "flex": 7}
+                    ]
+                },
+                {"type": "separator", "color": "#334139", "margin": "md"},
+                {"type": "text", "text": "เหตุการณ์:", "color": "#ff3838", "size": "xs", "weight": "bold", "margin": "sm"},
+                {"type": "text", "text": payload.incident, "color": "#e0e6ed", "size": "xs", "wrap": True},
+                {"type": "text", "text": "การปฏิบัติ:", "color": "#ff3838", "size": "xs", "weight": "bold", "margin": "sm"},
+                {"type": "text", "text": payload.action, "color": "#e0e6ed", "size": "xs", "wrap": True}
+            ]
+        },
+        "footer": {
+            "type": "box",
+            "layout": "horizontal",
+            "spacing": "sm",
+            "contents": [
+                {
+                    "type": "button",
+                    "style": "primary",
+                    "color": "#d4af37",
+                    "height": "sm",
+                    "action": {
+                        "type": "uri",
+                        "label": "🌐 แผนที่เรดาร์รวม",
+                        "uri": "https://tactical-line-backend.onrender.com/map"
+                    }
+                },
+                {
+                    "type": "button",
+                    "style": "secondary",
+                    "color": "#223328",
+                    "height": "sm",
+                    "action": {
+                        "type": "uri",
+                        "label": "📍 นำทาง Maps",
+                        "uri": f"https://maps.google.com/?q={payload.latitude},{payload.longitude}"
+                    }
+                }
+            ]
+        }
+    }
+
+    # ถ้ามีรูปภาพ ให้ใส่รูปภาพที่ส่วน Hero Header ของ Flex
+    if first_img:
+        flex_json["hero"] = {
+            "type": "image",
+            "url": first_img,
+            "size": "full",
+            "aspectRatio": "16:9",
+            "aspectMode": "cover"
+        }
+
+    try:
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            flex_container = FlexContainer.from_dict(flex_json)
+            push_req = PushMessageRequest(
+                to=target_id,
+                messages=[FlexMessage(alt_text=f"🚨 รายงานยุทธวิธี: {payload.situation}", contents=flex_container)]
+            )
+            line_bot_api.push_message(push_req)
+            print(f"✅ ส่ง LINE Flex Message เข้ากลุ่ม {target_id} สำเร็จ")
+    except Exception as e:
+        print(f"❌ LINE Push Message Error: {e}")
+
+# API รับรายงานจากหน้าฟอร์ม
 @app.post("/api/submit-report")
 async def submit_report(payload: ReportPayload):
     if payload.passcode != REPORT_PASSCODE:
@@ -1612,7 +1461,6 @@ async def submit_report(payload: ReportPayload):
             except Exception as upload_err:
                 print(f"Image upload error for item {idx}: {upload_err}")
 
-    # รวม URL ของทุกภาพคั่นด้วยจุลภาค
     all_images_str = ",".join(uploaded_image_urls) if uploaded_image_urls else None
     mgrs_str = payload.mgrs if payload.mgrs else "N/A"
     radius_val = payload.radius_meters or 0
@@ -1639,12 +1487,57 @@ async def submit_report(payload: ReportPayload):
             "image_url": all_images_str
         }
         supabase.table("reports").insert(report_data).execute()
+
+        # ส่งการ์ดรายงานยุทธวิธีเข้ากลุ่ม LINE
+        send_tactical_flex_to_line(payload, time_str, uploaded_image_urls)
+
     except Exception as err:
         print(f"Supabase error: {err}")
         raise HTTPException(status_code=500, detail="ไม่สามารถบันทึกข้อมูลลงฐานข้อมูลได้")
 
     return {"status": "success", "time": time_str, "images_count": len(uploaded_image_urls)}
 
+# Webhook Callback สำหรับรับ Event จาก LINE
 @app.post("/callback")
 async def callback(request: Request):
+    signature = request.headers.get("X-Line-Signature", "")
+    body = await request.body()
+    body_str = body.decode("utf-8")
+
+    try:
+        handler.handle(body_str, signature)
+    except InvalidSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    except Exception as e:
+        print(f"Webhook error: {e}")
+
     return Response(content="OK", status_code=200)
+
+# เมื่อบอทถูกเชิญเข้ากลุ่ม หรือมีคนพิมพ์ .id ในกลุ่ม จะบันทึก Group ID อัตโนมัติ
+@handler.add(JoinEvent)
+def handle_join(event):
+    if event.source.type == "group":
+        grp_id = event.source.group_id
+        try:
+            supabase.table("line_groups").upsert({"group_id": grp_id, "group_name": "TACTICAL_GROUP"}).execute()
+        except Exception as e:
+            print(f"Save group id error: {e}")
+
+@handler.add(MessageEvent, message=TextMessageContent)
+def handle_message(event):
+    text = event.message.text.strip()
+    if event.source.type == "group":
+        grp_id = event.source.group_id
+        if text.lower() == ".id":
+            try:
+                supabase.table("line_groups").upsert({"group_id": grp_id, "group_name": "TACTICAL_GROUP"}).execute()
+                with ApiClient(configuration) as api_client:
+                    line_bot_api = MessagingApi(api_client)
+                    line_bot_api.reply_message_with_http_info(
+                        reply_message_request={
+                            "replyToken": event.reply_token,
+                            "messages": [TextMessage(text=f"🎯 บันทึก Group ID เข้าศูนย์ยุทธการเรียบร้อย:\n{grp_id}")]
+                        }
+                    )
+            except Exception as e:
+                print(f"Reply error: {e}")
