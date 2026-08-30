@@ -50,53 +50,69 @@ def get_form():
         <style>
             :root {
                 --gold-accent: #d4af37;
-                --gold-glow: rgba(212, 175, 55, 0.45);
-                --panel-bg: rgba(12, 17, 14, 0.85);
-                --input-bg: rgba(6, 10, 8, 0.75);
-                --border-subtle: rgba(212, 175, 55, 0.35);
+                --gold-glow: rgba(212, 175, 55, 0.35);
+                --panel-bg: rgba(14, 18, 16, 0.78);
+                --input-bg: rgba(7, 10, 8, 0.65);
+                --border-subtle: rgba(212, 175, 55, 0.28);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
+                --fpv-cyan: #00ffc4;
             }
             * { box-sizing: border-box; }
             body {
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
-                background-color: #0b0e0c;
-                /* พื้นหลังลวดลายเส้นใยผ้าสนาม Tactical Cordura ผสมแสงตกกระทบ */
+                background-color: #060907;
+                /* พื้นหลังโปสเตอร์ภาพยนตร์สงครามโดรน + แสงเงาพิกัด HUD */
                 background-image: 
-                    radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.18) 0%, transparent 60%),
-                    radial-gradient(circle at 50% 85%, rgba(0, 0, 0, 0.8) 0%, transparent 70%),
-                    linear-gradient(45deg, #0e1411 25%, transparent 25%), 
-                    linear-gradient(-45deg, #0e1411 25%, transparent 25%), 
-                    linear-gradient(45deg, transparent 75%, #0e1411 75%), 
-                    linear-gradient(-45deg, transparent 75%, #0e1411 75%);
-                background-size: 100% 100%, 100% 100%, 12px 12px, 12px 12px, 12px 12px, 12px 12px;
-                background-position: center, center, 0 0, 0 6px, 6px -6px, -6px 0px;
+                    radial-gradient(circle at 50% 20%, rgba(0, 255, 196, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 50% 85%, rgba(0, 0, 0, 0.9) 0%, transparent 80%),
+                    linear-gradient(180deg, rgba(6, 10, 8, 0.75) 0%, rgba(4, 7, 5, 0.92) 100%),
+                    url('https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1920&q=80');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
                 color: #e2e8e5;
                 min-height: 100vh;
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                position: relative;
             }
+
+            /* เส้นสแกน OSD มุมกล้อง FPV */
+            body::after {
+                content: "";
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+                background-size: 100% 4px;
+                pointer-events: none;
+                z-index: 0;
+            }
+
             .hud-container {
                 width: 100%;
                 max-width: 520px;
                 background: var(--panel-bg);
                 border: 1px solid var(--border-subtle);
-                border-radius: 12px;
-                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.15);
-                padding: 22px 20px;
-                backdrop-filter: blur(14px);
-                -webkit-backdrop-filter: blur(14px);
+                border-radius: 14px;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 20px rgba(212, 175, 55, 0.12);
+                padding: 24px 22px;
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
                 position: relative;
                 overflow: hidden;
+                z-index: 1;
             }
+
+            /* แถบริบบิ้นธงชาติตัดมุมขวาบน */
             .thai-ribbon {
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 70px;
+                width: 85px;
                 height: 5px;
                 background: linear-gradient(90deg, 
                     var(--thai-red) 0% 20%, 
@@ -104,46 +120,52 @@ def get_form():
                     var(--thai-blue) 40% 60%, 
                     #fff 60% 80%, 
                     var(--thai-red) 80% 100%);
-                box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
             }
+
             .header-badge {
                 text-align: center;
-                margin-bottom: 16px;
+                margin-bottom: 18px;
                 position: relative;
             }
+
+            /* ตราอาร์ม PHANTOM Tactical Patch */
             .patch-container {
-                width: 85px;
-                height: 85px;
+                width: 78px;
+                height: 78px;
                 margin: 0 auto 10px auto;
-                background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(0,0,0,0) 70%);
+                background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(0,0,0,0) 70%);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+                filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
             }
             .patch-svg {
-                width: 75px;
-                height: 75px;
+                width: 70px;
+                height: 70px;
             }
+
             .title-main {
                 font-size: 20px;
                 font-weight: 700;
                 color: var(--gold-accent);
-                letter-spacing: 2px;
+                letter-spacing: 2.5px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 11px;
-                color: #8b9b92;
-                letter-spacing: 1px;
+                color: #8da196;
+                letter-spacing: 1.2px;
+                margin-top: 3px;
             }
+
             .grid-2 {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                gap: 12px;
             }
             .form-group {
                 margin-bottom: 12px;
@@ -153,16 +175,18 @@ def get_form():
                 font-size: 12px;
                 font-weight: 600;
                 color: #9cb1a5;
-                margin-bottom: 4px;
+                margin-bottom: 5px;
                 letter-spacing: 0.5px;
             }
+
+            /* ช่องกรอกข้อมูล Smooth Minimal Tactical */
             input, textarea {
                 width: 100%;
                 background: var(--input-bg);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 7px;
+                border: 1px solid rgba(255, 255, 255, 0.09);
+                border-radius: 8px;
                 color: #ffffff;
-                padding: 9px 12px;
+                padding: 10px 12px;
                 font-family: 'Chakra Petch', sans-serif;
                 font-size: 13.5px;
                 transition: all 0.25s ease;
@@ -171,16 +195,17 @@ def get_form():
                 outline: none;
                 border-color: var(--gold-accent);
                 background: rgba(12, 18, 14, 0.92);
-                box-shadow: 0 0 10px var(--gold-glow);
+                box-shadow: 0 0 12px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
                 color: #a8d5be;
-                background: rgba(0, 0, 0, 0.5);
-                border-color: rgba(255, 255, 255, 0.05);
+                background: rgba(0, 0, 0, 0.45);
+                border-color: rgba(255, 255, 255, 0.04);
             }
             textarea { resize: vertical; min-height: 52px; }
 
+            /* 5 ช่องสี่เหลี่ยมจัตุรัสแนบภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -189,12 +214,12 @@ def get_form():
             }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                border: 1px dashed rgba(212, 175, 55, 0.4);
-                border-radius: 6px;
+                border: 1px dashed rgba(212, 175, 55, 0.35);
+                border-radius: 7px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(0, 0, 0, 0.35);
                 cursor: pointer;
                 overflow: hidden;
                 position: relative;
@@ -211,7 +236,7 @@ def get_form():
             }
             .img-slot span {
                 font-size: 18px;
-                color: rgba(212, 175, 55, 0.7);
+                color: rgba(212, 175, 55, 0.65);
             }
             #file_input { display: none; }
 
@@ -220,20 +245,20 @@ def get_form():
                 background: linear-gradient(135deg, #a88424 0%, #614a10 100%);
                 border: 1px solid var(--gold-accent);
                 color: #fff;
-                padding: 11px;
+                padding: 12px;
                 font-size: 15px;
                 font-weight: 700;
                 letter-spacing: 2px;
                 cursor: pointer;
-                border-radius: 7px;
+                border-radius: 8px;
                 margin-top: 14px;
                 text-transform: uppercase;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
                 transition: all 0.25s ease;
             }
             .btn-action:hover {
                 background: linear-gradient(135deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 16px var(--gold-glow);
+                box-shadow: 0 0 18px var(--gold-glow);
                 transform: translateY(-1px);
             }
             .btn-action:disabled {
@@ -247,8 +272,8 @@ def get_form():
             .status-tag {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 10.5px;
-                color: #9cb1a5;
-                margin-top: 3px;
+                color: #8da196;
+                margin-top: 4px;
             }
         </style>
     </head>
@@ -258,24 +283,20 @@ def get_form():
             
             <div class="header-badge">
                 <div class="patch-container">
-                    <!-- SVG สัญลักษณ์อินทรีทอง PHANTOM คมชัดระดับ Vector -->
                     <svg class="patch-svg" viewBox="0 0 100 100">
                         <polygon points="50,5 95,30 80,95 20,95 5,30" fill="#2d3b2b" stroke="#d4af37" stroke-width="3" />
                         <polygon points="50,12 88,33 75,88 25,88 12,33" fill="#1b241a" stroke="#d4af37" stroke-width="1" />
-                        <!-- ปีกนก -->
                         <path d="M50 35 L75 25 L85 45 L65 50 L50 65 L35 50 L15 45 L25 25 Z" fill="#c49d32" />
-                        <!-- หัวอินทรี & ตาแดง -->
                         <circle cx="50" cy="40" r="10" fill="#e5c158" />
                         <circle cx="46" cy="38" r="2" fill="#ff1a1a" />
                         <circle cx="54" cy="38" r="2" fill="#ff1a1a" />
                         <polygon points="50,42 47,48 53,48" fill="#d4af37" />
-                        <!-- แท่นชื่อ PHANTOM -->
                         <rect x="25" y="70" width="50" height="14" fill="#000" stroke="#d4af37" stroke-width="1" rx="2" />
                         <text x="50" y="81" font-family="'Chakra Petch', sans-serif" font-size="8" font-weight="bold" fill="#d4af37" text-anchor="middle">PHANTOM</text>
                     </svg>
                 </div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
-                <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
+                <div class="title-sub">FPV RECON & TACTICAL STRIKE FEED</div>
             </div>
 
             <div class="grid-2">
