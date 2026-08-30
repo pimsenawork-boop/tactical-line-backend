@@ -51,7 +51,7 @@ def get_form():
             :root {
                 --gold-accent: #d4af37;
                 --gold-glow: rgba(212, 175, 55, 0.45);
-                --panel-bg: rgba(10, 14, 11, 0.84);
+                --panel-bg: rgba(12, 17, 14, 0.85);
                 --input-bg: rgba(6, 10, 8, 0.75);
                 --border-subtle: rgba(212, 175, 55, 0.35);
                 --thai-red: #a51c24;
@@ -63,14 +63,16 @@ def get_form():
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
                 background-color: #0b0e0c;
-                /* พื้นหลังภาพแพตช์ PHANTOM แท้ 100% พร้อมแสงเงาภาพยนตร์ */
+                /* พื้นหลังลวดลายเส้นใยผ้าสนาม Tactical Cordura ผสมแสงตกกระทบ */
                 background-image: 
-                    radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.75) 100%),
-                    linear-gradient(180deg, rgba(8, 12, 10, 0.65) 0%, rgba(5, 8, 6, 0.88) 100%),
-                    url('https://i.ibb.co/vzG74pL/phantom-patch.jpg');
-                background-size: cover;
-                background-position: center center;
-                background-attachment: fixed;
+                    radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.18) 0%, transparent 60%),
+                    radial-gradient(circle at 50% 85%, rgba(0, 0, 0, 0.8) 0%, transparent 70%),
+                    linear-gradient(45deg, #0e1411 25%, transparent 25%), 
+                    linear-gradient(-45deg, #0e1411 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, #0e1411 75%), 
+                    linear-gradient(-45deg, transparent 75%, #0e1411 75%);
+                background-size: 100% 100%, 100% 100%, 12px 12px, 12px 12px, 12px 12px, 12px 12px;
+                background-position: center, center, 0 0, 0 6px, 6px -6px, -6px 0px;
                 color: #e2e8e5;
                 min-height: 100vh;
                 display: flex;
@@ -108,6 +110,20 @@ def get_form():
                 text-align: center;
                 margin-bottom: 16px;
                 position: relative;
+            }
+            .patch-container {
+                width: 85px;
+                height: 85px;
+                margin: 0 auto 10px auto;
+                background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, rgba(0,0,0,0) 70%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+            }
+            .patch-svg {
+                width: 75px;
+                height: 75px;
             }
             .title-main {
                 font-size: 20px;
@@ -241,6 +257,23 @@ def get_form():
             <div class="thai-ribbon"></div>
             
             <div class="header-badge">
+                <div class="patch-container">
+                    <!-- SVG สัญลักษณ์อินทรีทอง PHANTOM คมชัดระดับ Vector -->
+                    <svg class="patch-svg" viewBox="0 0 100 100">
+                        <polygon points="50,5 95,30 80,95 20,95 5,30" fill="#2d3b2b" stroke="#d4af37" stroke-width="3" />
+                        <polygon points="50,12 88,33 75,88 25,88 12,33" fill="#1b241a" stroke="#d4af37" stroke-width="1" />
+                        <!-- ปีกนก -->
+                        <path d="M50 35 L75 25 L85 45 L65 50 L50 65 L35 50 L15 45 L25 25 Z" fill="#c49d32" />
+                        <!-- หัวอินทรี & ตาแดง -->
+                        <circle cx="50" cy="40" r="10" fill="#e5c158" />
+                        <circle cx="46" cy="38" r="2" fill="#ff1a1a" />
+                        <circle cx="54" cy="38" r="2" fill="#ff1a1a" />
+                        <polygon points="50,42 47,48 53,48" fill="#d4af37" />
+                        <!-- แท่นชื่อ PHANTOM -->
+                        <rect x="25" y="70" width="50" height="14" fill="#000" stroke="#d4af37" stroke-width="1" rx="2" />
+                        <text x="50" y="81" font-family="'Chakra Petch', sans-serif" font-size="8" font-weight="bold" fill="#d4af37" text-anchor="middle">PHANTOM</text>
+                    </svg>
+                </div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
                 <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
             </div>
