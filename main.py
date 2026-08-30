@@ -61,7 +61,7 @@ def get_form():
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>PHANTOM TACTICAL SITREP</title>
         <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-        <!-- Leaflet CSS แผนที่ยุทธวิธี -->
+        <!-- Leaflet CSS -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
             :root {
@@ -71,7 +71,7 @@ def get_form():
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
             }
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
             
             body {
                 margin: 0;
@@ -196,71 +196,207 @@ def get_form():
             }
             textarea { resize: vertical; min-height: 55px; }
 
-            /* สไตล์ปุ่มเครื่องมือ GPS & Map */
             .gps-tools {
                 display: flex;
                 gap: 6px;
-                margin-top: 5px;
+                margin-top: 6px;
             }
             .tool-btn {
                 flex: 1;
                 background: rgba(212, 175, 55, 0.15);
                 border: 1px solid rgba(212, 175, 55, 0.4);
                 color: var(--gold-accent);
-                padding: 5px 8px;
-                font-size: 11px;
+                padding: 7px 8px;
+                font-size: 12px;
                 font-weight: 600;
-                border-radius: 5px;
+                border-radius: 6px;
                 cursor: pointer;
                 transition: 0.2s;
                 text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
             }
-            .tool-btn:hover {
+            .tool-btn:active {
+                transform: scale(0.97);
                 background: rgba(212, 175, 55, 0.3);
-                box-shadow: 0 0 8px var(--gold-glow);
             }
 
-            /* กล่องแผนที่ดาวเทียม/ภูมิประเทศ Modal */
+            /* --- MODERN GOOGLE MAPS MODAL INTERFACE --- */
             #map-modal {
                 display: none;
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.85);
-                z-index: 9999;
-                padding: 15px;
-                justify-content: center;
-                align-items: center;
+                background: rgba(0, 0, 0, 0.75);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             }
-            .map-box {
+            #map-modal.show {
+                display: flex;
+                opacity: 1;
+            }
+            .map-app-container {
+                position: relative;
                 width: 100%;
-                max-width: 500px;
-                height: 80vh;
-                background: #0d1410;
-                border: 1.5px solid var(--gold-accent);
-                border-radius: 12px;
+                height: 100%;
                 display: flex;
                 flex-direction: column;
-                overflow: hidden;
-                box-shadow: 0 0 30px rgba(0,0,0,0.9);
             }
-            .map-header {
-                padding: 10px 15px;
-                background: rgba(10,15,12,0.9);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid var(--border-subtle);
-            }
-            .map-header h3 { margin: 0; font-size: 14px; color: var(--gold-accent); }
-            #tactical-map { flex: 1; width: 100%; }
-            .map-footer {
-                padding: 10px;
-                background: rgba(10,15,12,0.9);
-                text-align: center;
-                border-top: 1px solid var(--border-subtle);
+            #tactical-map {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                width: 100%; height: 100%;
+                z-index: 1;
             }
 
-            /* 5 ช่องสี่เหลี่ยมแนบภาพพร้อมปุ่มลบ/สลับรูป */
+            /* Search Header Bar */
+            .map-top-bar {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                right: 15px;
+                z-index: 1000;
+                display: flex;
+                gap: 8px;
+            }
+            .search-box-wrapper {
+                flex: 1;
+                background: rgba(18, 24, 20, 0.88);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(212, 175, 55, 0.4);
+                border-radius: 25px;
+                display: flex;
+                align-items: center;
+                padding: 4px 14px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+            }
+            .search-box-wrapper input {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                padding: 6px 8px;
+                font-size: 14px;
+                color: #fff;
+            }
+            .search-box-wrapper input:focus {
+                background: transparent;
+                box-shadow: none;
+                border: none;
+            }
+            .btn-circle-icon {
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: rgba(18, 24, 20, 0.88);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border: 1px solid rgba(212, 175, 55, 0.4);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                transition: 0.2s;
+            }
+            .btn-circle-icon:active { transform: scale(0.92); }
+
+            /* Floating Layer & Location Buttons */
+            .map-floating-controls {
+                position: absolute;
+                right: 15px;
+                bottom: 120px;
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* Center Pin Indicator (Google Maps Style) */
+            .center-pin-marker {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -100%);
+                z-index: 100;
+                pointer-events: none;
+                transition: transform 0.15s ease-out;
+            }
+            .center-pin-marker.dragging {
+                transform: translate(-50%, -120%) scale(1.1);
+            }
+            .pin-icon {
+                width: 38px;
+                height: 38px;
+                filter: drop-shadow(0 8px 10px rgba(0,0,0,0.7));
+            }
+            .pin-shadow {
+                position: absolute;
+                bottom: -2px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 10px;
+                height: 4px;
+                background: rgba(0,0,0,0.6);
+                border-radius: 50%;
+                filter: blur(1px);
+            }
+
+            /* Bottom Sheet Panel */
+            .map-bottom-sheet {
+                position: absolute;
+                bottom: 15px;
+                left: 15px;
+                right: 15px;
+                z-index: 1000;
+                background: rgba(12, 18, 14, 0.92);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid var(--border-subtle);
+                border-radius: 16px;
+                padding: 14px 16px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+            }
+            .coord-info-title {
+                font-size: 11px;
+                color: #8da196;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .coord-info-val {
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 14px;
+                font-weight: 700;
+                color: #7ee0ad;
+                margin-top: 2px;
+            }
+            .btn-confirm-pin {
+                background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
+                border: 1px solid var(--gold-accent);
+                color: #000;
+                font-weight: 700;
+                font-size: 13px;
+                padding: 10px 18px;
+                border-radius: 10px;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+                white-space: nowrap;
+            }
+            .btn-confirm-pin:active { transform: scale(0.95); }
+
+            /* 5 ช่องสี่เหลี่ยมแนบภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -301,7 +437,7 @@ def get_form():
                 position: absolute;
                 top: 2px;
                 right: 2px;
-                background: rgba(165, 28, 36, 0.85);
+                background: rgba(165, 28, 36, 0.88);
                 color: #fff;
                 border: 1px solid #fff;
                 border-radius: 50%;
@@ -415,31 +551,56 @@ def get_form():
             <button id="submit_btn" class="btn-action" onclick="submitReport()">ส่งรายงานยุทธวิธี</button>
         </div>
 
-        <!-- หน้าต่าง Modal สำหรับเลือกและลากหมุดบนแผนที่ภูมิประเทศ/ดาวเทียม -->
+        <!-- หน้าต่าง Google Maps Mode เต็มจอแบบโมเดิร์น -->
         <div id="map-modal">
-            <div class="map-box">
-                <div class="map-header">
-                    <h3>🗺️ TACTICAL MAP PINPOINT</h3>
-                    <span style="cursor:pointer; color:#e57373; font-weight:bold; font-size:18px;" onclick="closeMapModal()">✕</span>
-                </div>
+            <div class="map-app-container">
                 <div id="tactical-map"></div>
-                <div class="map-footer">
-                    <div id="modal_coord_text" style="color: #7ee0ad; font-family:'Share Tech Mono'; font-size:13px; margin-bottom:8px;">
-                        พิกัด: 0.000000, 0.000000
+
+                <!-- Center Fixed Marker (Crosshair Pin) -->
+                <div class="center-pin-marker" id="center_pin">
+                    <svg class="pin-icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" fill="#ff3b30" stroke="#ffffff" stroke-width="1.5"/>
+                        <circle cx="12" cy="9" r="3" fill="#ffffff"/>
+                    </svg>
+                    <div class="pin-shadow"></div>
+                </div>
+
+                <!-- Top Search & Close Bar -->
+                <div class="map-top-bar">
+                    <div class="search-box-wrapper">
+                        <span style="font-size:14px; margin-right:4px;">🔍</span>
+                        <input type="text" id="map_search_input" placeholder="ค้นหาชื่อสถานที่ / อำเภอ / ค่าย..." onkeypress="if(event.key==='Enter') searchLocation()">
                     </div>
-                    <button type="button" class="tool-btn" style="padding: 8px 20px; font-size:13px;" onclick="confirmMapPin()">🎯 ยืนยันพิกัดนี้</button>
+                    <div class="btn-circle-icon" onclick="closeMapModal()" style="color:#ff6b6b; font-size:18px;">✕</div>
+                </div>
+
+                <!-- Floating Controls: Switch Layer & Lock GPS -->
+                <div class="map-floating-controls">
+                    <div class="btn-circle-icon" onclick="toggleMapLayer()" title="สลับดาวเทียม/แผนที่">🛰️</div>
+                    <div class="btn-circle-icon" onclick="locateUserOnMap()" title="ล็อกตำแหน่ง GPS ตัวเอง">🎯</div>
+                </div>
+
+                <!-- Bottom Floating Confirmation Sheet -->
+                <div class="map-bottom-sheet">
+                    <div>
+                        <div class="coord-info-title">🎯 พิกัดเป้าเล็งกึ่งกลาง</div>
+                        <div class="coord-info-val" id="sheet_coords">14.967565, 102.081882</div>
+                    </div>
+                    <button type="button" class="btn-confirm-pin" onclick="confirmCenterPin()">ปักหมุดตำแหน่งนี้</button>
                 </div>
             </div>
         </div>
 
-        <!-- Leaflet JS สำหรับระบบแผนที่ -->
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             let userLat = 14.967565;
             let userLon = 102.081882;
+            let currentPinLat = 14.967565;
+            let currentPinLon = 102.081882;
             let imagesArray = [null, null, null, null, null];
             let activeSlotIndex = 0;
-            let map, marker;
+            let map, satelliteLayer, standardLayer;
+            let isSatellite = true;
 
             function updateTime() {
                 const now = new Date();
@@ -447,7 +608,6 @@ def get_form():
             }
             updateTime();
 
-            // ดึง GPS อัตโนมัติจากเครื่อง
             function getAutoGPS() {
                 const status = document.getElementById('gps_status');
                 status.innerText = "⚡ GPS: กำลังตรวจจับดาวเทียม...";
@@ -458,6 +618,8 @@ def get_form():
                         (pos) => {
                             userLat = pos.coords.latitude;
                             userLon = pos.coords.longitude;
+                            currentPinLat = userLat;
+                            currentPinLon = userLon;
                             updateCoordsDisplay();
                             status.innerText = "⚡ GPS: พิกัดล็อกตำแหน่งแล้ว";
                             status.style.color = "#7ee0ad";
@@ -486,69 +648,123 @@ def get_form():
                     if (!isNaN(lat) && !isNaN(lon)) {
                         userLat = lat;
                         userLon = lon;
+                        currentPinLat = lat;
+                        currentPinLon = lon;
                         document.getElementById('gps_status').innerText = "📍 พิกัด: กำหนดตำแหน่งเอง";
                         document.getElementById('gps_status').style.color = "#d4af37";
                     }
                 }
             }
 
-            // ระบบแผนที่ Leaflet Satellite/Hybrid
-            function initMap() {
+            // Google Maps Mode Setup
+            function initInteractiveMap() {
                 if (!map) {
-                    map = L.map('tactical-map').setView([userLat, userLon], 15);
-                    
-                    // เลเยอร์แผนที่ผสม (ภูมิประเทศ + ถนน)
-                    L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    map = L.map('tactical-map', {
+                        zoomControl: false,
+                        attributionControl: false
+                    }).setView([currentPinLat, currentPinLon], 16);
+
+                    // 1. ภาพถ่ายดาวเทียมผสมถนนความละเอียดสูง
+                    satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
                         maxZoom: 20,
                         subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-                    }).addTo(map);
-
-                    // มาร์กเกอร์ลากได้
-                    marker = L.marker([userLat, userLon], { draggable: true }).addTo(map);
-
-                    marker.on('dragend', function (e) {
-                        const pos = marker.getLatLng();
-                        updateModalCoordText(pos.lat, pos.lng);
                     });
 
-                    map.on('click', function(e) {
-                        marker.setLatLng(e.latlng);
-                        updateModalCoordText(e.latlng.lat, e.latlng.lng);
+                    // 2. แผนที่ถนนแบบสมูท
+                    standardLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                        maxZoom: 20,
+                        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+                    });
+
+                    satelliteLayer.addTo(map);
+
+                    const pinElement = document.getElementById('center_pin');
+
+                    // อัปเดตพิกัดตามตำแหน่งศูนย์กลางหน้าจอแบบ Real-time
+                    map.on('movestart', () => {
+                        pinElement.classList.add('dragging');
+                    });
+
+                    map.on('move', () => {
+                        const center = map.getCenter();
+                        currentPinLat = center.lat;
+                        currentPinLon = center.lng;
+                        document.getElementById('sheet_coords').innerText = `${currentPinLat.toFixed(6)}, ${currentPinLon.toFixed(6)}`;
+                    });
+
+                    map.on('moveend', () => {
+                        pinElement.classList.remove('dragging');
                     });
                 } else {
-                    map.setView([userLat, userLon], 15);
-                    marker.setLatLng([userLat, userLon]);
+                    map.setView([currentPinLat, currentPinLon], 16);
                 }
-                updateModalCoordText(userLat, userLon);
-            }
-
-            function updateModalCoordText(lat, lon) {
-                document.getElementById('modal_coord_text').innerText = `พิกัด: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                document.getElementById('sheet_coords').innerText = `${currentPinLat.toFixed(6)}, ${currentPinLon.toFixed(6)}`;
             }
 
             function openMapModal() {
-                document.getElementById('map-modal').style.display = 'flex';
+                const modal = document.getElementById('map-modal');
+                modal.classList.add('show');
                 setTimeout(() => {
-                    initMap();
+                    initInteractiveMap();
                     map.invalidateSize();
-                }, 200);
+                }, 150);
             }
 
             function closeMapModal() {
-                document.getElementById('map-modal').style.display = 'none';
+                document.getElementById('map-modal').classList.remove('show');
             }
 
-            function confirmMapPin() {
-                const pos = marker.getLatLng();
-                userLat = pos.lat;
-                userLon = pos.lng;
+            function toggleMapLayer() {
+                if (isSatellite) {
+                    map.removeLayer(satelliteLayer);
+                    standardLayer.addTo(map);
+                    isSatellite = false;
+                } else {
+                    map.removeLayer(standardLayer);
+                    satelliteLayer.addTo(map);
+                    isSatellite = true;
+                }
+            }
+
+            function locateUserOnMap() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, {
+                            animate: true,
+                            duration: 1.2
+                        });
+                    }, null, { enableHighAccuracy: true });
+                }
+            }
+
+            async function searchLocation() {
+                const query = document.getElementById('map_search_input').value.trim();
+                if (!query) return;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=th`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
+                    } else {
+                        alert('ไม่พบสถานที่ดังกล่าว กรุณาลองค้นหาด้วยชื่ออื่น');
+                    }
+                } catch (err) {
+                    console.log("Search error", err);
+                }
+            }
+
+            function confirmCenterPin() {
+                userLat = currentPinLat;
+                userLon = currentPinLon;
                 updateCoordsDisplay();
-                document.getElementById('gps_status').innerText = "🎯 พิกัด: ปักหมุดแผนที่ภูมิประเทศ";
+                document.getElementById('gps_status').innerText = "🎯 พิกัด: ปักหมุดแม่นยำ (แผนที่)";
                 document.getElementById('gps_status').style.color = "#7ee0ad";
                 closeMapModal();
             }
 
-            // ระบบจัดการรูปภาพรายช่อง (เปลี่ยน/ลบ/เลือกใหม่)
+            // ระบบจัดการรูปภาพรายช่อง
             function triggerSlotUpload(index) {
                 activeSlotIndex = index;
                 document.getElementById('single_file_input').click();
@@ -569,7 +785,7 @@ def get_form():
             }
 
             function removeImage(event, index) {
-                event.stopPropagation(); // ไม่ให้ไปเปิดหน้าต่างเลือกไฟล์
+                event.stopPropagation();
                 imagesArray[index] = null;
                 renderSlot(index);
                 updateImageCount();
