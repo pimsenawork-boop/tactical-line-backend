@@ -34,7 +34,6 @@ CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
-# LINE Group ID เป้าหมาย (หากไม่ตั้ง จะดึงกลุ่มล่าสุดจากฐานข้อมูลอัตโนมัติ)
 TARGET_GROUP_ID = os.getenv("LINE_TARGET_GROUP_ID", "")
 
 REPORT_PASSCODE = "phantom2"
@@ -211,7 +210,7 @@ def get_form():
                 background: linear-gradient(180deg, rgba(212, 175, 55, 0.25) 0%, rgba(160, 130, 30, 0.2) 100%);
             }
 
-            /* MAP MODAL */
+            /* --- MAP MODAL --- */
             #map-modal {
                 display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); z-index: 10000;
@@ -249,6 +248,7 @@ def get_form():
                 position: absolute; top: 50%; left: 50%; transform: translate(-50%, -100%);
                 z-index: 100; pointer-events: none; text-align: center;
             }
+            .center-pin-marker.dragging { transform: translate(-50%, -120%) scale(1.1); }
             .pin-emoji-badge { font-size: 24px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8)); }
             .pin-shadow {
                 position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
@@ -423,7 +423,8 @@ def get_form():
                     <div class="map-top-row">
                         <div class="search-box-wrapper">
                             <span style="font-size:14px; margin-right:4px;">🔍</span>
-                            <input type="text" id="map_search_input" placeholder="ค้นหาชื่อสถานที่ / อำเภอ / ค่าย..." onkeypress="if(event.key==='Enter') searchLocation()">
+                            <input type="text" id="map_search_input" placeholder="ค้นหา: พิกัด Lat,Lon / MGRS / ชื่อสถานที่..." onkeypress="if(event.key==='Enter') searchLocation()">
+                            <button type="button" onclick="searchLocation()" style="background:transparent; border:none; color:var(--gold-accent); cursor:pointer; font-weight:bold; font-size:12px; margin-left:4px;">ค้นหา</button>
                         </div>
                         <div class="btn-circle-icon" onclick="closeMapModal()" style="color:#ff6b6b; font-size:18px;">✕</div>
                     </div>
@@ -646,9 +647,40 @@ def get_form():
                 }
             }
 
+            // ฟังก์ชันค้นหาอัจฉริยะ (Smart Location & Coordinate Parser)
             async function searchLocation() {
                 const query = document.getElementById('map_search_input').value.trim();
                 if (!query) return;
+
+                // 1. ตรวจสอบรูปแบบพิกัด GPS (Lat, Lon)
+                const latLonRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)[,\s]+[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+                if (latLonRegex.test(query)) {
+                    const parts = query.split(/[\s,]+/);
+                    const lat = parseFloat(parts[0]);
+                    const lon = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        map.flyTo([lat, lon], 17, { animate: true, duration: 1.2 });
+                        return;
+                    }
+                }
+
+                // 2. ตรวจสอบรูปแบบพิกัดทหาร MGRS
+                try {
+                    const cleanMGRS = query.replace(/\s+/g, '').toUpperCase();
+                    if (typeof mgrs !== 'undefined' && mgrs.toPoint) {
+                        const point = mgrs.toPoint(cleanMGRS);
+                        if (point && point.length === 2) {
+                            const lon = point[0];
+                            const lat = point[1];
+                            map.flyTo([lat, lon], 17, { animate: true, duration: 1.2 });
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // หากไม่ใช่ MGRS ให้ข้ามไปค้นหาชื่อสถานที่ต่อไป
+                }
+
+                // 3. ค้นหาด้วยชื่อสถานที่ / ค่าย / อำเภอ ผ่าน Nominatim API
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=th`);
                     const data = await res.json();
@@ -657,9 +689,11 @@ def get_form():
                         const lon = parseFloat(data[0].lon);
                         map.flyTo([lat, lon], 16, { animate: true, duration: 1.5 });
                     } else {
-                        alert('ไม่พบสถานที่ดังกล่าว กรุณาลองค้นหาด้วยชื่ออื่น');
+                        alert('⚠️ ไม่พบข้อมูลพิกัดหรือสถานที่ดังกล่าว กรุณาตรวจสอบความถูกต้อง');
                     }
-                } catch (err) {}
+                } catch (err) {
+                    alert('⚠️ ไม่สามารถค้นหาสถานที่ได้ กรุณาตรวจสอบการเชื่อมต่อ');
+                }
             }
 
             function confirmCenterPin() {
@@ -1288,7 +1322,6 @@ def send_tactical_flex_to_line(payload: ReportPayload, time_str: str, image_urls
     if not CHANNEL_ACCESS_TOKEN:
         return
 
-    # หา Group ID เป้าหมาย (ถ้าไม่มีใน env ให้ดึงจากฐานข้อมูล line_groups)
     target_id = TARGET_GROUP_ID
     if not target_id:
         try:
@@ -1306,7 +1339,6 @@ def send_tactical_flex_to_line(payload: ReportPayload, time_str: str, image_urls
     mgrs_val = payload.mgrs if payload.mgrs else "N/A"
     first_img = image_urls[0] if image_urls else None
 
-    # โครงสร้าง Flex Message ธีมยุทธวิธี
     flex_json = {
         "type": "bubble",
         "size": "mega",
@@ -1405,7 +1437,6 @@ def send_tactical_flex_to_line(payload: ReportPayload, time_str: str, image_urls
         }
     }
 
-    # ถ้ามีรูปภาพ ให้ใส่รูปภาพที่ส่วน Hero Header ของ Flex
     if first_img:
         flex_json["hero"] = {
             "type": "image",
@@ -1513,7 +1544,6 @@ async def callback(request: Request):
 
     return Response(content="OK", status_code=200)
 
-# เมื่อบอทถูกเชิญเข้ากลุ่ม หรือมีคนพิมพ์ .id ในกลุ่ม จะบันทึก Group ID อัตโนมัติ
 @handler.add(JoinEvent)
 def handle_join(event):
     if event.source.type == "group":
