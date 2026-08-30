@@ -68,21 +68,25 @@ def get_form():
         <style>
             :root {
                 --gold-accent: #d4af37;
+                --gold-light: #f5d77f;
                 --gold-glow: rgba(212, 175, 55, 0.45);
-                --border-subtle: rgba(212, 175, 55, 0.35);
-                --thai-red: #a51c24;
-                --thai-blue: #1c2c59;
+                --border-subtle: rgba(212, 175, 55, 0.25);
+                --thai-red: #d32f2f;
+                --thai-blue: #1976d2;
                 --mgrs-green: #00ffcc;
+                --cyan-glow: rgba(0, 255, 204, 0.35);
+                --card-bg: rgba(10, 16, 13, 0.88);
             }
             * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
             
             body {
                 margin: 0;
-                padding: 15px;
+                padding: 16px 12px;
                 font-family: 'Chakra Petch', sans-serif;
-                background-color: #060907;
+                background-color: #050806;
                 background-image: 
-                    linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
+                    radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 75%),
+                    linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.85)),
                     url('/bg_new.jpg');
                 background-size: cover;
                 background-position: center center;
@@ -97,26 +101,25 @@ def get_form():
 
             .hud-container {
                 width: 100%;
-                max-width: 520px;
-                background-image: 
-                    linear-gradient(rgba(10, 15, 12, 0.8), rgba(6, 10, 8, 0.88)),
-                    url('/bg.jpg');
-                background-size: cover;
-                background-position: center center;
-                border: 1.5px solid var(--border-subtle);
-                border-radius: 14px;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.15);
-                padding: 24px 22px;
+                max-width: 500px;
+                background: var(--card-bg);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+                border: 1px solid var(--border-subtle);
+                border-radius: 18px;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.12);
+                padding: 24px 20px;
                 position: relative;
                 overflow: hidden;
             }
 
+            /* สัญลักษณ์ริบบิ้นธงชาติไทยมุมบน */
             .thai-ribbon {
                 position: absolute;
                 top: 0;
                 right: 0;
-                width: 85px;
-                height: 5px;
+                width: 90px;
+                height: 4px;
                 background: linear-gradient(90deg, 
                     var(--thai-red) 0% 20%, 
                     #fff 20% 40%, 
@@ -127,25 +130,33 @@ def get_form():
 
             .header-badge {
                 text-align: center;
-                margin-bottom: 16px;
+                margin-bottom: 20px;
                 position: relative;
+            }
+            .header-badge::after {
+                content: '';
+                display: block;
+                width: 60px;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, var(--gold-accent), transparent);
+                margin: 8px auto 0 auto;
             }
 
             .title-main {
-                font-size: 21px;
+                font-size: 22px;
                 font-weight: 700;
                 color: var(--gold-accent);
-                letter-spacing: 2.5px;
+                letter-spacing: 3px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 0 12px var(--gold-glow);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
                 font-size: 11px;
                 color: #8da196;
-                letter-spacing: 1.2px;
-                margin-top: 3px;
+                letter-spacing: 1.5px;
+                margin-top: 4px;
             }
 
             .grid-2 {
@@ -154,47 +165,43 @@ def get_form():
                 gap: 12px;
             }
             .form-group {
-                margin-bottom: 12px;
+                margin-bottom: 14px;
             }
             label {
-                display: block;
+                display: flex;
+                align-items: center;
+                gap: 6px;
                 font-size: 12.5px;
                 font-weight: 600;
-                color: #a2b5aa;
-                margin-bottom: 5px;
+                color: #b0c2b7;
+                margin-bottom: 6px;
                 letter-spacing: 0.5px;
-                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             }
 
+            /* อินพุตสไตล์ Tactical Glass */
             input, textarea, select {
                 width: 100%;
-                background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.78), rgba(5, 8, 6, 0.88)),
-                    url('/bg.jpg');
-                background-size: cover;
-                background-position: center;
-                border: 1px solid rgba(212, 175, 55, 0.3);
-                border-radius: 8px;
+                background: rgba(8, 14, 10, 0.75);
+                border: 1px solid rgba(212, 175, 55, 0.25);
+                border-radius: 10px;
                 color: #ffffff;
-                padding: 10px 12px;
+                padding: 11px 14px;
                 font-family: 'Chakra Petch', sans-serif;
                 font-size: 14px;
-                transition: all 0.25s ease;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
             }
             input:focus, textarea:focus, select:focus {
                 outline: none;
                 border-color: var(--gold-accent);
-                background-image: 
-                    linear-gradient(rgba(12, 18, 14, 0.7), rgba(12, 18, 14, 0.85)),
-                    url('/bg.jpg');
-                box-shadow: 0 0 12px var(--gold-glow);
+                background: rgba(12, 20, 15, 0.9);
+                box-shadow: 0 0 15px var(--gold-glow), inset 0 2px 4px rgba(0,0,0,0.5);
+                transform: translateY(-1px);
             }
             .readonly-input {
                 font-family: 'Share Tech Mono', monospace;
-                color: #7ee0ad;
-                background-image: 
-                    linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.8)),
-                    url('/bg.jpg');
+                color: #7ee0ad !important;
+                background: rgba(4, 8, 6, 0.85);
                 border-color: rgba(255, 255, 255, 0.08);
             }
             .mgrs-input {
@@ -202,48 +209,76 @@ def get_form():
                 color: var(--mgrs-green) !important;
                 font-weight: 700;
                 letter-spacing: 1.2px;
-                background-image: 
-                    linear-gradient(rgba(0, 20, 15, 0.7), rgba(0, 15, 10, 0.85)),
-                    url('/bg.jpg');
+                background: rgba(0, 20, 15, 0.75);
                 border-color: rgba(0, 255, 204, 0.35);
+                box-shadow: inset 0 0 8px rgba(0, 255, 204, 0.1);
             }
-            textarea { resize: vertical; min-height: 55px; }
+            textarea { resize: vertical; min-height: 60px; }
 
+            /* สไตล์แถบปุ่มควบคุม Tactical Tools (3 ปุ่มหลัก) */
             .gps-tools {
-                display: flex;
-                gap: 6px;
-                margin-top: 6px;
+                display: grid;
+                grid-template-columns: 1fr 1.2fr 1fr;
+                gap: 8px;
+                margin-top: 8px;
             }
             .tool-btn {
-                flex: 1;
-                background: rgba(212, 175, 55, 0.15);
-                border: 1px solid rgba(212, 175, 55, 0.4);
+                background: linear-gradient(180deg, rgba(25, 38, 30, 0.9) 0%, rgba(12, 20, 15, 0.9) 100%);
+                border: 1px solid rgba(212, 175, 55, 0.35);
                 color: var(--gold-accent);
-                padding: 7px 8px;
-                font-size: 12px;
+                padding: 10px 8px;
+                font-size: 11.5px;
                 font-weight: 600;
-                border-radius: 6px;
+                border-radius: 9px;
                 cursor: pointer;
-                transition: 0.2s;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 text-align: center;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 4px;
+                gap: 3px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            }
+            .tool-btn:hover {
+                border-color: var(--gold-accent);
+                box-shadow: 0 0 12px var(--gold-glow);
+                transform: translateY(-2px);
+                color: #fff;
             }
             .tool-btn:active {
-                transform: scale(0.97);
-                background: rgba(212, 175, 55, 0.3);
+                transform: scale(0.95);
+                box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+            }
+            .tool-btn.primary-map {
+                border-color: var(--gold-accent);
+                background: linear-gradient(180deg, rgba(212, 175, 55, 0.25) 0%, rgba(150, 120, 30, 0.2) 100%);
+                color: var(--gold-light);
+            }
+            .tool-btn.radar-btn {
+                border-color: rgba(0, 255, 204, 0.4);
+                color: var(--mgrs-green);
+                background: linear-gradient(180deg, rgba(0, 255, 204, 0.15) 0%, rgba(0, 100, 80, 0.2) 100%);
             }
 
-            /* --- MODERN MAP MODAL --- */
+            .status-tag {
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 11.5px;
+                color: #8da196;
+                margin-top: 6px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            /* --- MODERN MAP MODAL INTERFACE --- */
             #map-modal {
                 display: none;
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0, 0, 0, 0.75);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
+                background: rgba(0, 0, 0, 0.82);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
                 z-index: 10000;
                 opacity: 0;
                 transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -282,21 +317,21 @@ def get_form():
             }
             .search-box-wrapper {
                 flex: 1;
-                background: rgba(18, 24, 20, 0.92);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
+                background: rgba(14, 20, 16, 0.92);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 25px;
+                border-radius: 30px;
                 display: flex;
                 align-items: center;
-                padding: 4px 14px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+                padding: 4px 16px;
+                box-shadow: 0 6px 25px rgba(0,0,0,0.6);
             }
             .search-box-wrapper input {
                 background: transparent;
                 border: none;
                 box-shadow: none;
-                padding: 6px 8px;
+                padding: 8px 6px;
                 font-size: 14px;
                 color: #fff;
             }
@@ -306,37 +341,37 @@ def get_form():
                 border: none;
             }
             .btn-circle-icon {
-                width: 44px;
-                height: 44px;
+                width: 46px;
+                height: 46px;
                 border-radius: 50%;
-                background: rgba(18, 24, 20, 0.92);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
+                background: rgba(14, 20, 16, 0.92);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
                 color: #fff;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 16px;
+                font-size: 18px;
                 cursor: pointer;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.6);
                 transition: 0.2s;
             }
             .btn-circle-icon:active { transform: scale(0.92); }
 
             .provider-selector-bar {
-                background: rgba(18, 24, 20, 0.92);
-                backdrop-filter: blur(12px);
-                border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 10px;
-                padding: 4px 10px;
+                background: rgba(14, 20, 16, 0.92);
+                backdrop-filter: blur(14px);
+                border: 1px solid rgba(212, 175, 55, 0.35);
+                border-radius: 12px;
+                padding: 5px 12px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.6);
             }
             .provider-selector-bar select {
                 background: transparent;
                 border: none;
                 color: var(--gold-accent);
-                font-size: 12.5px;
+                font-size: 13px;
                 font-weight: 600;
                 padding: 4px;
                 cursor: pointer;
@@ -345,7 +380,7 @@ def get_form():
             .map-floating-controls {
                 position: absolute;
                 right: 15px;
-                bottom: 145px;
+                bottom: 155px;
                 z-index: 1000;
                 display: flex;
                 flex-direction: column;
@@ -359,41 +394,41 @@ def get_form():
                 transform: translate(-50%, -100%);
                 z-index: 100;
                 pointer-events: none;
-                transition: transform 0.15s ease-out;
+                transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
                 text-align: center;
             }
             .center-pin-marker.dragging {
-                transform: translate(-50%, -120%) scale(1.1);
+                transform: translate(-50%, -125%) scale(1.15);
             }
             .pin-emoji-badge {
-                font-size: 32px;
-                filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
+                font-size: 36px;
+                filter: drop-shadow(0 6px 12px rgba(0,0,0,0.9));
             }
             .pin-shadow {
                 position: absolute;
                 bottom: -2px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 14px;
-                height: 5px;
-                background: rgba(0,0,0,0.6);
+                width: 16px;
+                height: 6px;
+                background: rgba(0,0,0,0.7);
                 border-radius: 50%;
-                filter: blur(1px);
+                filter: blur(1.5px);
             }
 
             .map-bottom-sheet {
                 position: absolute;
-                bottom: 15px;
+                bottom: 16px;
                 left: 15px;
                 right: 15px;
                 z-index: 1000;
-                background: rgba(12, 18, 14, 0.94);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
+                background: rgba(10, 16, 13, 0.95);
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
                 border: 1.5px solid var(--border-subtle);
-                border-radius: 16px;
-                padding: 14px 16px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+                border-radius: 18px;
+                padding: 16px 18px;
+                box-shadow: 0 12px 35px rgba(0,0,0,0.85);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -425,42 +460,41 @@ def get_form():
                 color: #000;
                 font-weight: 700;
                 font-size: 13px;
-                padding: 11px 18px;
-                border-radius: 10px;
+                padding: 12px 20px;
+                border-radius: 12px;
                 cursor: pointer;
                 text-transform: uppercase;
                 letter-spacing: 1px;
-                box-shadow: 0 4px 12px rgba(212, 175, 55, 0.35);
+                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
                 white-space: nowrap;
+                transition: 0.2s;
             }
             .btn-confirm-pin:active { transform: scale(0.95); }
 
+            /* 5 ช่องสี่เหลี่ยมแนบภาพดีไซน์ใหม่ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
                 gap: 8px;
-                margin-top: 6px;
+                margin-top: 8px;
             }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.65), rgba(5, 8, 6, 0.75)),
-                    url('/bg.jpg');
-                background-size: cover;
-                background-position: center;
-                border: 1px dashed rgba(212, 175, 55, 0.4);
-                border-radius: 7px;
+                background: rgba(8, 14, 10, 0.75);
+                border: 1.5px dashed rgba(212, 175, 55, 0.35);
+                border-radius: 10px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 overflow: hidden;
                 position: relative;
-                transition: 0.2s;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             .img-slot:hover {
                 border-color: var(--gold-accent);
-                box-shadow: 0 0 10px var(--gold-glow);
+                box-shadow: 0 0 12px var(--gold-glow);
+                transform: translateY(-2px);
             }
             .img-slot img {
                 width: 100%;
@@ -468,62 +502,65 @@ def get_form():
                 object-fit: cover;
             }
             .img-slot span {
-                font-size: 20px;
+                font-size: 22px;
                 color: var(--gold-accent);
+                font-weight: 300;
             }
             .btn-remove-img {
                 position: absolute;
-                top: 2px;
-                right: 2px;
-                background: rgba(165, 28, 36, 0.88);
+                top: 3px;
+                right: 3px;
+                background: rgba(211, 47, 47, 0.92);
                 color: #fff;
                 border: 1px solid #fff;
                 border-radius: 50%;
-                width: 18px;
-                height: 18px;
+                width: 20px;
+                height: 20px;
                 font-size: 11px;
-                line-height: 16px;
+                line-height: 18px;
                 text-align: center;
                 cursor: pointer;
                 display: none;
                 z-index: 10;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.6);
             }
             .img-slot.has-img .btn-remove-img { display: block; }
 
+            /* ปุ่มส่งรายงานยุทธวิธีหลัก (Tactical Action Trigger) */
             .btn-action {
                 width: 100%;
-                background: linear-gradient(180deg, #a88424 0%, #614a10 100%);
+                background: linear-gradient(180deg, #d4af37 0%, #8c6d15 100%);
                 border: 1px solid var(--gold-accent);
-                color: #fff;
-                padding: 12px;
-                font-size: 15px;
+                color: #000;
+                padding: 14px;
+                font-size: 16px;
                 font-weight: 700;
                 letter-spacing: 2px;
                 cursor: pointer;
-                border-radius: 8px;
-                margin-top: 15px;
+                border-radius: 12px;
+                margin-top: 18px;
                 text-transform: uppercase;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-                transition: all 0.25s ease;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.2);
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
             }
             .btn-action:hover {
-                background: linear-gradient(180deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 15px var(--gold-glow);
-                transform: translateY(-1px);
+                background: linear-gradient(180deg, #f5d77f 0%, #a88424 100%);
+                box-shadow: 0 0 25px var(--gold-glow);
+                transform: translateY(-2px);
+            }
+            .btn-action:active {
+                transform: translateY(0);
+                box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
             }
             .btn-action:disabled {
-                background: #252826;
-                border-color: #3b403d;
-                color: #6a736e;
+                background: #202622;
+                border-color: #3b453e;
+                color: #616e66;
                 cursor: not-allowed;
                 box-shadow: none;
                 transform: none;
-            }
-            .status-tag {
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 11px;
-                color: #8da196;
-                margin-top: 4px;
             }
         </style>
     </head>
@@ -539,17 +576,17 @@ def get_form():
             <div class="grid-2">
                 <div class="form-group">
                     <label>🔑 รหัสผ่าน (Passcode):</label>
-                    <input type="password" id="passcode" placeholder="กรอกรหัส">
+                    <input type="password" id="passcode" placeholder="กรอกรหัสความปลอดภัย">
                 </div>
                 <div class="form-group">
-                    <label>1. สถานการณ์:</label>
+                    <label>⚡ 1. สถานการณ์:</label>
                     <input type="text" id="situation" placeholder="เช่น การปะทะ / ตรวจพบ">
                 </div>
             </div>
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>2. เวลาบันทึก (AUTO):</label>
+                    <label>⏱️ 2. เวลาบันทึก:</label>
                     <input type="text" id="time_display" class="readonly-input" readonly>
                 </div>
                 <div class="form-group">
@@ -569,36 +606,46 @@ def get_form():
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>3.1 พิกัด GPS (LAT, LON):</label>
+                    <label>🌐 3.1 พิกัด GPS (LAT, LON):</label>
                     <input type="text" id="coords_display" placeholder="14.xxxxxx, 102.xxxxxx" onchange="manualCoordsInput(this.value)">
                 </div>
                 <div class="form-group">
-                    <label>3.2 พิกัดทหาร (MGRS):</label>
+                    <label>🎖️ 3.2 พิกัดทหาร (MGRS):</label>
                     <input type="text" id="mgrs_display" class="mgrs-input" readonly placeholder="คำนวณอัตโนมัติ...">
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: -6px;">
+            <!-- กล่อง 3 ปุ่มเครื่องมือยุทธวิธีดีไซน์โมเดิร์น -->
+            <div class="form-group" style="margin-top: -4px;">
                 <div class="gps-tools">
-                    <button type="button" class="tool-btn" onclick="getAutoGPS()">🛰️ AUTO GPS</button>
-                    <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่ (Multi-Map)</button>
-                    <button type="button" class="tool-btn" onclick="window.open('/map', '_blank')">🌐 แผนที่รวมยุทธวิธี</button>
+                    <button type="button" class="tool-btn" onclick="getAutoGPS()">
+                        <span style="font-size: 15px;">🛰️</span>
+                        <span>AUTO GPS</span>
+                    </button>
+                    <button type="button" class="tool-btn primary-map" onclick="openMapModal()">
+                        <span style="font-size: 15px;">🗺️</span>
+                        <span>ปักหมุดแผนที่</span>
+                    </button>
+                    <button type="button" class="tool-btn radar-btn" onclick="window.open('/map', '_blank')">
+                        <span style="font-size: 15px;">📡</span>
+                        <span>เรดาร์รวม</span>
+                    </button>
                 </div>
                 <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
             </div>
 
             <div class="form-group">
-                <label>4. เหตุการณ์:</label>
+                <label>📝 4. เหตุการณ์:</label>
                 <textarea id="incident" rows="2" placeholder="ระบุรายละเอียดสิ่งที่ตรวจพบ / รูปแบบเหตุการณ์"></textarea>
             </div>
 
             <div class="form-group">
-                <label>5. การปฏิบัติ:</label>
+                <label>🛡️ 5. การปฏิบัติ:</label>
                 <textarea id="action" rows="2" placeholder="ระบุการวางกำลัง / การใช้อาวุธ / การควบคุมพื้นที่"></textarea>
             </div>
 
             <div class="form-group">
-                <label>📷 ภาพถ่ายพื้นที่ปฏิบัติการ (แตะเพื่อเปลี่ยน/กด ✕ เพื่อลบ):</label>
+                <label>📷 ภาพถ่ายพื้นที่ปฏิบัติการ (แตะเลือก/กด ✕ ลบ):</label>
                 <input type="file" id="single_file_input" accept="image/*" style="display: none;" onchange="handleSingleFile(this.files)">
                 <div class="img-grid">
                     <div class="img-slot" id="slot-0" onclick="triggerSlotUpload(0)"><span>+</span><div class="btn-remove-img" onclick="removeImage(event, 0)">✕</div></div>
@@ -613,10 +660,12 @@ def get_form():
             <button id="submit_btn" class="btn-action" onclick="submitReport()">ส่งรายงานยุทธวิธี</button>
         </div>
 
+        <!-- หน้าต่าง Google Maps Mode เต็มจอพร้อมสลับ 4 ค่ายแผนที่ -->
         <div id="map-modal">
             <div class="map-app-container">
                 <div id="tactical-map"></div>
 
+                <!-- Center Fixed Marker with Tactical Icon -->
                 <div class="center-pin-marker" id="center_pin">
                     <div class="pin-emoji-badge" id="marker_emoji_preview">🎯</div>
                     <div class="pin-shadow"></div>
@@ -730,7 +779,7 @@ def get_form():
                             currentPinLat = userLat;
                             currentPinLon = userLon;
                             updateCoordsDisplay();
-                            status.innerText = "⚡ GPS: พิกัดล็อกตำแหน่งแล้ว";
+                            status.innerText = "⚡ GPS: ล็อกพิกัดดาวเทียมสำเร็จ";
                             status.style.color = "#7ee0ad";
                         },
                         (err) => {
@@ -979,14 +1028,13 @@ def get_map_dashboard():
             :root {
                 --gold-accent: #d4af37;
                 --gold-glow: rgba(212, 175, 55, 0.45);
-                --thai-red: #a51c24;
+                --thai-red: #d32f2f;
                 --mgrs-green: #00ffcc;
             }
             * { box-sizing: border-box; margin: 0; padding: 0; }
-            body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Chakra Petch', sans-serif; background: #060907; }
+            body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Chakra Petch', sans-serif; background: #050806; }
             #dashboard-map { width: 100%; height: 100%; }
 
-            /* หน้าล็อกอินความปลอดภัย ADMIN PASSCODE GATE */
             #auth-gate {
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
@@ -999,14 +1047,14 @@ def get_map_dashboard():
             }
             .gate-box {
                 width: 100%;
-                max-width: 420px;
-                background: rgba(10, 15, 12, 0.94);
+                max-width: 400px;
+                background: rgba(10, 16, 13, 0.95);
                 border: 1.5px solid var(--gold-accent);
-                border-radius: 14px;
-                padding: 30px 24px;
-                box-shadow: 0 0 35px rgba(212, 175, 55, 0.25);
+                border-radius: 16px;
+                padding: 32px 24px;
+                box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
                 text-align: center;
-                backdrop-filter: blur(12px);
+                backdrop-filter: blur(16px);
             }
             .gate-title {
                 color: var(--gold-accent);
@@ -1026,7 +1074,7 @@ def get_map_dashboard():
                 width: 100%;
                 background: rgba(5, 8, 6, 0.85);
                 border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 8px;
+                border-radius: 10px;
                 color: #fff;
                 padding: 12px;
                 font-size: 16px;
@@ -1037,7 +1085,7 @@ def get_map_dashboard():
             }
             .gate-input:focus {
                 border-color: var(--gold-accent);
-                box-shadow: 0 0 12px var(--gold-glow);
+                box-shadow: 0 0 15px var(--gold-glow);
             }
             .gate-btn {
                 width: 100%;
@@ -1046,27 +1094,27 @@ def get_map_dashboard():
                 color: #000;
                 font-weight: 700;
                 font-size: 14px;
-                padding: 12px;
-                border-radius: 8px;
+                padding: 13px;
+                border-radius: 10px;
                 cursor: pointer;
                 text-transform: uppercase;
                 letter-spacing: 1.5px;
                 box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+                transition: 0.2s;
             }
             .gate-btn:active { transform: scale(0.98); }
             
-            /* แถบหัว Dashboard */
             .header-bar {
                 position: absolute;
                 top: 15px;
                 left: 15px;
                 z-index: 1000;
-                background: rgba(10, 15, 12, 0.92);
+                background: rgba(10, 16, 13, 0.94);
                 border: 1.5px solid #d4af37;
-                border-radius: 12px;
+                border-radius: 14px;
                 padding: 10px 18px;
-                backdrop-filter: blur(8px);
-                box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+                backdrop-filter: blur(12px);
+                box-shadow: 0 6px 25px rgba(0,0,0,0.8);
             }
             .header-bar h2 { font-size: 16px; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
             .header-bar p { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffcc; margin: 2px 0 0 0; }
@@ -1076,11 +1124,11 @@ def get_map_dashboard():
                 top: 15px;
                 right: 15px;
                 z-index: 1000;
-                background: rgba(10, 15, 12, 0.92);
+                background: rgba(10, 16, 13, 0.94);
                 border: 1.5px solid #d4af37;
-                border-radius: 10px;
-                padding: 6px 12px;
-                backdrop-filter: blur(8px);
+                border-radius: 12px;
+                padding: 6px 14px;
+                backdrop-filter: blur(12px);
             }
             .map-switch-top select {
                 background: transparent;
@@ -1094,29 +1142,28 @@ def get_map_dashboard():
             }
 
             .leaflet-popup-content-wrapper {
-                background: rgba(12, 18, 14, 0.95) !important;
+                background: rgba(10, 16, 13, 0.96) !important;
                 border: 1.5px solid #d4af37 !important;
-                border-radius: 10px !important;
+                border-radius: 12px !important;
                 color: #fff !important;
                 font-family: 'Chakra Petch', sans-serif !important;
-                backdrop-filter: blur(10px);
+                backdrop-filter: blur(12px);
             }
             .leaflet-popup-tip { background: #d4af37 !important; }
-            .popup-img { width: 100%; border-radius: 6px; margin-top: 8px; border: 1px solid rgba(212,175,55,0.4); }
+            .popup-img { width: 100%; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(212,175,55,0.4); }
             
             .custom-tactical-pin {
                 font-size: 28px;
                 text-align: center;
-                filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8));
+                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.85));
                 cursor: pointer;
             }
         </style>
     </head>
     <body>
-        <!-- หน้าต่างปลดล็อกรหัสผ่านก่อนดูแผนที่ -->
         <div id="auth-gate">
             <div class="gate-box">
-                <div style="font-size: 38px; margin-bottom: 8px;">🔒</div>
+                <div style="font-size: 40px; margin-bottom: 8px;">🔒</div>
                 <div class="gate-title">RESTRICTED ACCESS</div>
                 <div class="gate-subtitle">TACTICAL RADAR OPERATIONS // AUTH REQUIRED</div>
                 <input type="password" id="admin_key_input" class="gate-input" placeholder="กรอกรหัสผ่านผู้ดูแลระบบ" onkeypress="if(event.key==='Enter') verifyAdminKey()">
@@ -1142,8 +1189,6 @@ def get_map_dashboard():
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
-            let currentAdminKey = "";
-
             const layers = {
                 google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
                 esri_sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
@@ -1175,7 +1220,6 @@ def get_map_dashboard():
                     }
                     const data = await res.json();
                     
-                    // ปลดล็อกหน้าจอ
                     document.getElementById('auth-gate').style.display = 'none';
                     map.invalidateSize();
                     
@@ -1234,7 +1278,6 @@ def get_map_dashboard():
     </html>
     """
 
-# API สำหรับดึงรายงานทั้งหมด (ต้องส่ง passcode=phantomadmin มาตรวจสอบ)
 @app.get("/api/get-all-reports")
 def get_all_reports(passcode: str = ""):
     if passcode != ADMIN_MAP_PASSCODE:
