@@ -56,11 +56,8 @@ def get_form():
         <style>
             :root {
                 --gold-accent: #d4af37;
-                --gold-glow: rgba(212, 175, 55, 0.35);
-                --panel-solid: #111613; /* พื้นหลังกล่องทึบ ป้องกันพื้นหลังทะลุ */
-                --input-solid: #18201b; /* พื้นหลังช่องกรอกทึบ อ่านง่ายสบายตา */
-                --border-subtle: #2d3830;
-                --border-focus: #d4af37;
+                --gold-glow: rgba(212, 175, 55, 0.45);
+                --border-subtle: rgba(212, 175, 55, 0.35);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
             }
@@ -73,7 +70,7 @@ def get_form():
                 font-family: 'Chakra Petch', sans-serif;
                 background-color: #060907;
                 background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.4), rgba(5, 8, 6, 0.65)),
+                    linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
                     url('/bg.jpg');
                 background-size: cover;
                 background-position: center center;
@@ -86,14 +83,18 @@ def get_form():
                 align-items: center;
             }
 
-            /* กล่องฟอร์มหลัก - ตัดพื้นหลังทึบพิเศษ ไม่ให้ภาพด้านหลังแย่งสายตา */
+            /* กล่องฟอร์มหลัก - ใช้รูปภาพ bg.jpg ลายเดียวกับพื้นหลัง */
             .hud-container {
                 width: 100%;
                 max-width: 520px;
-                background: var(--panel-solid);
-                border: 2px solid var(--border-subtle);
+                background-image: 
+                    linear-gradient(rgba(10, 15, 12, 0.8), rgba(6, 10, 8, 0.88)),
+                    url('/bg.jpg');
+                background-size: cover;
+                background-position: center center;
+                border: 1.5px solid var(--border-subtle);
                 border-radius: 14px;
-                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.8);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.15);
                 padding: 24px 22px;
                 position: relative;
                 overflow: hidden;
@@ -126,7 +127,7 @@ def get_form():
                 letter-spacing: 2.5px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
@@ -151,13 +152,18 @@ def get_form():
                 color: #a2b5aa;
                 margin-bottom: 5px;
                 letter-spacing: 0.5px;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             }
 
-            /* ช่องกรอกข้อมูลสีทึบ ชัดเจน ไม่กลืนกับพื้นหลัง */
+            /* ช่องกรอกข้อมูล - ใช้ภาพ bg.jpg เดียวกัน เนียนตาและเป็นเนื้อเดียวกับฉากหลัง */
             input, textarea {
                 width: 100%;
-                background: var(--input-solid) !important;
-                border: 1px solid var(--border-subtle);
+                background-image: 
+                    linear-gradient(rgba(5, 8, 6, 0.78), rgba(5, 8, 6, 0.88)),
+                    url('/bg.jpg');
+                background-size: cover;
+                background-position: center;
+                border: 1px solid rgba(212, 175, 55, 0.3);
                 border-radius: 8px;
                 color: #ffffff;
                 padding: 10px 12px;
@@ -167,15 +173,19 @@ def get_form():
             }
             input:focus, textarea:focus {
                 outline: none;
-                border-color: var(--border-focus);
-                background: #1f2a24 !important;
-                box-shadow: 0 0 10px var(--gold-glow);
+                border-color: var(--gold-accent);
+                background-image: 
+                    linear-gradient(rgba(12, 18, 14, 0.7), rgba(12, 18, 14, 0.85)),
+                    url('/bg.jpg');
+                box-shadow: 0 0 12px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
                 color: #7ee0ad;
-                background: #0d120f !important;
-                border-color: #1a241e;
+                background-image: 
+                    linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.8)),
+                    url('/bg.jpg');
+                border-color: rgba(255, 255, 255, 0.08);
             }
             textarea { resize: vertical; min-height: 55px; }
 
@@ -188,12 +198,16 @@ def get_form():
             }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                border: 1px dashed var(--border-subtle);
+                background-image: 
+                    linear-gradient(rgba(5, 8, 6, 0.65), rgba(5, 8, 6, 0.75)),
+                    url('/bg.jpg');
+                background-size: cover;
+                background-position: center;
+                border: 1px dashed rgba(212, 175, 55, 0.4);
                 border-radius: 7px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: var(--input-solid);
                 cursor: pointer;
                 overflow: hidden;
                 position: relative;
@@ -201,7 +215,7 @@ def get_form():
             }
             .img-slot:hover {
                 border-color: var(--gold-accent);
-                background: #232d27;
+                box-shadow: 0 0 10px var(--gold-glow);
             }
             .img-slot img {
                 width: 100%;
@@ -436,3 +450,4 @@ async def submit_report(payload: ReportPayload):
 
 @app.post("/callback")
 async def callback(request: Request):
+    return Response(content="OK", status_code=200)
