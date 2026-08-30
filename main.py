@@ -33,12 +33,13 @@ class ReportPayload(BaseModel):
     latitude: float
     longitude: float
     mgrs: Optional[str] = ""
+    tactical_icon: Optional[str] = "🎯 ตรวจพบเป้าหมาย"
     images: Optional[List[str]] = []
     user_id: str = "PHANTOM_OPERATOR"
 
 @app.get("/")
 def read_root():
-    return {"status": "Tactical PHANTOM System Active"}
+    return {"status": "Tactical PHANTOM System Active", "form_url": "/form", "map_view": "/map"}
 
 @app.get("/bg.jpg")
 def get_old_background_image():
@@ -62,7 +63,6 @@ def get_form():
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>PHANTOM TACTICAL SITREP</title>
         <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-        <!-- Leaflet CSS แผนที่ -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
             :root {
@@ -165,7 +165,7 @@ def get_form():
                 text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             }
 
-            input, textarea {
+            input, textarea, select {
                 width: 100%;
                 background-image: 
                     linear-gradient(rgba(5, 8, 6, 0.78), rgba(5, 8, 6, 0.88)),
@@ -180,7 +180,7 @@ def get_form():
                 font-size: 14px;
                 transition: all 0.25s ease;
             }
-            input:focus, textarea:focus {
+            input:focus, textarea:focus, select:focus {
                 outline: none;
                 border-color: var(--gold-accent);
                 background-image: 
@@ -235,7 +235,7 @@ def get_form():
                 background: rgba(212, 175, 55, 0.3);
             }
 
-            /* --- MODERN GOOGLE MAPS MODAL INTERFACE --- */
+            /* --- MODERN GOOGLE MAPS MODAL --- */
             #map-modal {
                 display: none;
                 position: fixed;
@@ -265,7 +265,6 @@ def get_form():
                 z-index: 1;
             }
 
-            /* Search Header Bar */
             .map-top-bar {
                 position: absolute;
                 top: 15px;
@@ -322,7 +321,7 @@ def get_form():
             .map-floating-controls {
                 position: absolute;
                 right: 15px;
-                bottom: 140px;
+                bottom: 145px;
                 z-index: 1000;
                 display: flex;
                 flex-direction: column;
@@ -337,28 +336,27 @@ def get_form():
                 z-index: 100;
                 pointer-events: none;
                 transition: transform 0.15s ease-out;
+                text-align: center;
             }
             .center-pin-marker.dragging {
                 transform: translate(-50%, -120%) scale(1.1);
             }
-            .pin-icon {
-                width: 38px;
-                height: 38px;
-                filter: drop-shadow(0 8px 10px rgba(0,0,0,0.7));
+            .pin-emoji-badge {
+                font-size: 32px;
+                filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
             }
             .pin-shadow {
                 position: absolute;
                 bottom: -2px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 10px;
-                height: 4px;
+                width: 14px;
+                height: 5px;
                 background: rgba(0,0,0,0.6);
                 border-radius: 50%;
                 filter: blur(1px);
             }
 
-            /* Bottom Sheet Panel */
             .map-bottom-sheet {
                 position: absolute;
                 bottom: 15px;
@@ -526,9 +524,24 @@ def get_form():
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>2. เวลาบันทึก (AUTO):</label>
-                <input type="text" id="time_display" class="readonly-input" readonly>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>2. เวลาบันทึก (AUTO):</label>
+                    <input type="text" id="time_display" class="readonly-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label>🎖️ สัญลักษณ์ยุทธวิธี:</label>
+                    <select id="tactical_icon" onchange="updatePinIconPreview()">
+                        <option value="🎯 ตรวจพบเป้าหมาย">🎯 ตรวจพบเป้าหมาย (Target)</option>
+                        <option value="⚔️ จุดปะทะ/ใช้อาวุธ">⚔️ จุดปะทะ (Contact)</option>
+                        <option value="🛡️ ฐานปฏิบัติการ/ที่มั่น">🛡️ ฐานที่มั่น (FOB/Strongpoint)</option>
+                        <option value="⚠️ วัตถุต้องสงสัย/IED">⚠️ วัตถุต้องสงสัย (Hazard/IED)</option>
+                        <option value="🚁 จุดส่งกลับ/ลาน ฮ.">🚁 ลาน ฮ. / ส่งกลับ (LZ)</option>
+                        <option value="⛺ จุดตรวจ/ค่ายพัก">⛺ จุดตรวจ (Checkpoint)</option>
+                        <option value="💧 แหล่งน้ำ/เสบียง">💧 แหล่งเสบียง (Supply)</option>
+                        <option value="📡 ที่ตั้งสื่อสาร/เรดาร์">📡 สถานีสื่อสาร (Comms/Radar)</option>
+                    </select>
+                </div>
             </div>
 
             <div class="grid-2">
@@ -546,6 +559,7 @@ def get_form():
                 <div class="gps-tools">
                     <button type="button" class="tool-btn" onclick="getAutoGPS()">🛰️ AUTO GPS</button>
                     <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่ (MGRS)</button>
+                    <button type="button" class="tool-btn" onclick="window.open('/map', '_blank')">🌐 แผนที่รวมยุทธวิธี</button>
                 </div>
                 <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
             </div>
@@ -576,21 +590,17 @@ def get_form():
             <button id="submit_btn" class="btn-action" onclick="submitReport()">ส่งรายงานยุทธวิธี</button>
         </div>
 
-        <!-- หน้าต่าง Google Maps Mode เต็มจอแบบโมเดิร์น -->
+        <!-- หน้าต่าง Google Maps Mode เต็มจอ -->
         <div id="map-modal">
             <div class="map-app-container">
                 <div id="tactical-map"></div>
 
-                <!-- Center Fixed Marker (Crosshair Pin) -->
+                <!-- Center Fixed Marker with Tactical Icon -->
                 <div class="center-pin-marker" id="center_pin">
-                    <svg class="pin-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z" fill="#ff3b30" stroke="#ffffff" stroke-width="1.5"/>
-                        <circle cx="12" cy="9" r="3" fill="#ffffff"/>
-                    </svg>
+                    <div class="pin-emoji-badge" id="marker_emoji_preview">🎯</div>
                     <div class="pin-shadow"></div>
                 </div>
 
-                <!-- Top Search & Close Bar -->
                 <div class="map-top-bar">
                     <div class="search-box-wrapper">
                         <span style="font-size:14px; margin-right:4px;">🔍</span>
@@ -599,16 +609,14 @@ def get_form():
                     <div class="btn-circle-icon" onclick="closeMapModal()" style="color:#ff6b6b; font-size:18px;">✕</div>
                 </div>
 
-                <!-- Floating Controls -->
                 <div class="map-floating-controls">
                     <div class="btn-circle-icon" onclick="toggleMapLayer()" title="สลับดาวเทียม/แผนที่">🛰️</div>
                     <div class="btn-circle-icon" onclick="locateUserOnMap()" title="ล็อกตำแหน่ง GPS ตัวเอง">🎯</div>
                 </div>
 
-                <!-- Bottom Floating Confirmation Sheet (GPS + MGRS) -->
                 <div class="map-bottom-sheet">
                     <div>
-                        <div class="coord-info-title">🎯 พิกัดเป้าเล็งกึ่งกลาง</div>
+                        <div class="coord-info-title" id="sheet_symbol_title">🎯 ตรวจพบเป้าหมาย</div>
                         <div class="coord-info-val" id="sheet_coords">14.967565, 102.081882</div>
                         <div class="coord-mgrs-val" id="sheet_mgrs">MGRS: คำนวณ...</div>
                     </div>
@@ -618,7 +626,6 @@ def get_form():
         </div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <!-- ไลบรารี MGRS สำหรับแปลงพิกัดกริดทหาร -->
         <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/dist/mgrs.min.js"></script>
         <script>
             let userLat = 14.967565;
@@ -637,18 +644,19 @@ def get_form():
             }
             updateTime();
 
-            // ฟังก์ชันแปลง Lat/Lon เป็น MGRS 10 หลักอย่างเป็นระเบียบ
+            function updatePinIconPreview() {
+                const sel = document.getElementById('tactical_icon').value;
+                const emoji = sel.split(' ')[0];
+                document.getElementById('marker_emoji_preview').innerText = emoji;
+                document.getElementById('sheet_symbol_title').innerText = sel;
+            }
+
             function convertToMGRS(lat, lon) {
                 try {
                     if (typeof mgrs !== 'undefined' && mgrs.forward) {
-                        const raw = mgrs.forward([lon, lat], 5); // 5 digits = 10-digit grid (1m precision)
-                        // จัดรูปแบบให้อ่านง่าย เช่น 47P QS 17852 54621
+                        const raw = mgrs.forward([lon, lat], 5);
                         if (raw.length >= 15) {
-                            const gzd = raw.slice(0, 3);
-                            const sq = raw.slice(3, 5);
-                            const easting = raw.slice(5, 10);
-                            const northing = raw.slice(10, 15);
-                            return `${gzd} ${sq} ${easting} ${northing}`;
+                            return `${raw.slice(0, 3)} ${raw.slice(3, 5)} ${raw.slice(5, 10)} ${raw.slice(10, 15)}`;
                         }
                         return raw;
                     }
@@ -709,8 +717,8 @@ def get_form():
                 }
             }
 
-            // Google Maps Mode Setup
             function initInteractiveMap() {
+                updatePinIconPreview();
                 if (!map) {
                     map = L.map('tactical-map', {
                         zoomControl: false,
@@ -817,7 +825,6 @@ def get_form():
                 closeMapModal();
             }
 
-            // ระบบจัดการรูปภาพรายช่อง
             function triggerSlotUpload(index) {
                 activeSlotIndex = index;
                 document.getElementById('single_file_input').click();
@@ -871,6 +878,7 @@ def get_form():
                 const situation = document.getElementById('situation').value;
                 const incident = document.getElementById('incident').value;
                 const action = document.getElementById('action').value;
+                const tacticalIcon = document.getElementById('tactical_icon').value;
 
                 if (!passcode) { alert('กรุณากรอกรหัสผ่านความปลอดภัย'); return; }
 
@@ -892,6 +900,7 @@ def get_form():
                             latitude: userLat,
                             longitude: userLon,
                             mgrs: currentMGRS,
+                            tactical_icon: tacticalIcon,
                             images: validImages
                         })
                     });
@@ -915,6 +924,142 @@ def get_form():
     </body>
     </html>
     """
+
+# --- หน้าศูนย์รวมแผนที่ยุทธวิธี (TACTICAL MAP DASHBOARD) ---
+@app.get("/map", response_class=HTMLResponse)
+def get_map_dashboard():
+    return """
+    <!DOCTYPE html>
+    <html lang="th">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PHANTOM - TACTICAL COMMON OPERATING PICTURE</title>
+        <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Chakra Petch', sans-serif; background: #000; }
+            #dashboard-map { width: 100%; height: 100%; }
+            
+            .header-bar {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                z-index: 1000;
+                background: rgba(10, 15, 12, 0.9);
+                border: 1.5px solid #d4af37;
+                border-radius: 12px;
+                padding: 10px 18px;
+                backdrop-filter: blur(8px);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            }
+            .header-bar h2 { font-size: 16px; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+            .header-bar p { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffcc; margin: 2px 0 0 0; }
+
+            .leaflet-popup-content-wrapper {
+                background: rgba(12, 18, 14, 0.95) !important;
+                border: 1.5px solid #d4af37 !important;
+                border-radius: 10px !important;
+                color: #fff !important;
+                font-family: 'Chakra Petch', sans-serif !important;
+                backdrop-filter: blur(10px);
+            }
+            .leaflet-popup-tip { background: #d4af37 !important; }
+            .popup-img { width: 100%; border-radius: 6px; margin-top: 8px; border: 1px solid rgba(212,175,55,0.4); }
+            
+            .custom-tactical-pin {
+                font-size: 28px;
+                text-align: center;
+                filter: drop-shadow(0 3px 6px rgba(0,0,0,0.8));
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header-bar">
+            <h2>🗺️ PHANTOM TACTICAL RADAR MAP</h2>
+            <p id="total_reports">กำลังโหลดพิกัดรายงานยุทธวิธี...</p>
+        </div>
+        <div id="dashboard-map"></div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script>
+            const map = L.map('dashboard-map', { attributionControl: false }).setView([14.967565, 102.081882], 12);
+            
+            L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+            }).addTo(map);
+
+            async function loadReports() {
+                try {
+                    const res = await fetch('/api/get-all-reports');
+                    const data = await res.json();
+                    
+                    if (data && data.length > 0) {
+                        document.getElementById('total_reports').innerText = `ตรวจพบรายงานทั้งหมด: ${data.length} จุดยุทธวิธี`;
+                        const group = [];
+
+                        data.forEach(item => {
+                            if (item.latitude && item.longitude) {
+                                // ดึงอิโมจิจากข้อความ
+                                const detail = item.detail || "";
+                                let emoji = "🎯";
+                                const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี: (\\S+)/);
+                                if (match) emoji = match[1];
+
+                                const customIcon = L.divIcon({
+                                    className: 'custom-tactical-pin',
+                                    html: emoji,
+                                    iconSize: [30, 30],
+                                    iconAnchor: [15, 15]
+                                });
+
+                                const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
+                                
+                                let imgHtml = "";
+                                if (item.image_url) {
+                                    imgHtml = `<a href="${item.image_url}" target="_blank"><img src="${item.image_url}" class="popup-img"></a>`;
+                                }
+
+                                marker.bindPopup(`
+                                    <div style="min-width: 220px;">
+                                        <div style="font-size:15px; font-weight:bold; color:#d4af37; margin-bottom:4px;">${emoji} รายงานสถานการณ์</div>
+                                        <div style="font-size:12px; white-space: pre-line; color:#cfd8dc; line-height:1.4;">${detail}</div>
+                                        ${imgHtml}
+                                    </div>
+                                `);
+                                group.push([item.latitude, item.longitude]);
+                            }
+                        });
+
+                        if (group.length > 0) {
+                            map.fitBounds(group, { padding: [50, 50] });
+                        }
+                    } else {
+                        document.getElementById('total_reports').innerText = "ยังไม่มีรายงานในระบบ";
+                    }
+                } catch (e) {
+                    console.error("Fetch error:", e);
+                }
+            }
+
+            loadReports();
+        </script>
+    </body>
+    </html>
+    """
+
+# API สำหรับดึงรายงานทั้งหมดไปแสดงบนหน้าแผนที่
+@app.get("/api/get-all-reports")
+def get_all_reports():
+    try:
+        response = supabase.table("reports").select("*").order("created_at", desc=True).limit(100).execute()
+        return response.data
+    except Exception as e:
+        print(f"Fetch all error: {e}")
+        return []
 
 @app.post("/api/submit-report")
 async def submit_report(payload: ReportPayload):
@@ -957,6 +1102,7 @@ async def submit_report(payload: ReportPayload):
             "report_type": "รายงานยุทธวิธี (PHANTOM HUD)",
             "detail": (
                 f"เวลา: {time_str}\n"
+                f"🎖️ สัญลักษณ์ยุทธวิธี: {payload.tactical_icon}\n"
                 f"1. สถานการณ์: {payload.situation}\n"
                 f"3. เหตุการณ์: {payload.incident}\n"
                 f"5. การปฏิบัติ: {payload.action}\n"
