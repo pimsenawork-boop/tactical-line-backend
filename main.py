@@ -50,62 +50,46 @@ def get_form():
         <style>
             :root {
                 --gold-accent: #d4af37;
-                --gold-glow: rgba(212, 175, 55, 0.4);
-                --panel-bg: rgba(10, 14, 12, 0.82);
-                --input-bg: rgba(6, 10, 8, 0.7);
-                --border-subtle: rgba(212, 175, 55, 0.3);
+                --gold-glow: rgba(212, 175, 55, 0.45);
+                --panel-bg: rgba(10, 14, 11, 0.84);
+                --input-bg: rgba(6, 10, 8, 0.75);
+                --border-subtle: rgba(212, 175, 55, 0.35);
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
-                --fpv-cyan: #00ffc4;
             }
             * { box-sizing: border-box; }
             body {
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
-                background-color: #050806;
-                /* พื้นหลัง FPV Drone War Theme ผสมผสานแสงเงาตกกระทบ */
+                background-color: #0b0e0c;
+                /* พื้นหลังภาพแพตช์ PHANTOM แท้ 100% พร้อมแสงเงาภาพยนตร์ */
                 background-image: 
-                    radial-gradient(circle at 50% 30%, rgba(0, 255, 196, 0.08) 0%, transparent 65%),
-                    radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
-                    linear-gradient(180deg, rgba(3, 6, 4, 0.78) 0%, rgba(5, 8, 6, 0.92) 100%),
-                    url('https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1920&q=80');
+                    radial-gradient(circle at 50% 30%, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.75) 100%),
+                    linear-gradient(180deg, rgba(8, 12, 10, 0.65) 0%, rgba(5, 8, 6, 0.88) 100%),
+                    url('https://i.ibb.co/vzG74pL/phantom-patch.jpg');
                 background-size: cover;
-                background-position: center;
+                background-position: center center;
                 background-attachment: fixed;
                 color: #e2e8e5;
                 min-height: 100vh;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                position: relative;
             }
-
-            /* สัญลักษณ์ Crosshair & OSD แบบมุมมองกล้องโดรน FPV */
-            body::before {
-                content: "";
-                position: fixed;
-                top: 20px; left: 20px; right: 20px; bottom: 20px;
-                border: 1px solid rgba(0, 255, 196, 0.12);
-                pointer-events: none;
-                z-index: 0;
-            }
-
             .hud-container {
                 width: 100%;
                 max-width: 520px;
                 background: var(--panel-bg);
                 border: 1px solid var(--border-subtle);
                 border-radius: 12px;
-                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.12);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.15);
                 padding: 22px 20px;
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
                 position: relative;
                 overflow: hidden;
-                z-index: 1;
             }
-
             .thai-ribbon {
                 position: absolute;
                 top: 0;
@@ -120,39 +104,19 @@ def get_form():
                     var(--thai-red) 80% 100%);
                 box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
             }
-
             .header-badge {
                 text-align: center;
                 margin-bottom: 16px;
                 position: relative;
             }
-
-            /* นำตราอาร์ม PHANTOM มาแสดงเป็นศูนย์กลางพร้อมแสงกระทบสมจริง */
-            .phantom-patch-frame {
-                width: 76px;
-                height: 76px;
-                margin: 0 auto 8px auto;
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(0,0,0,0) 70%);
-                filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 8px rgba(212, 175, 55, 0.35));
-            }
-            .phantom-patch-frame img {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-            }
-
             .title-main {
-                font-size: 19px;
+                font-size: 20px;
                 font-weight: 700;
                 color: var(--gold-accent);
                 letter-spacing: 2px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
@@ -179,7 +143,7 @@ def get_form():
             input, textarea {
                 width: 100%;
                 background: var(--input-bg);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 border-radius: 7px;
                 color: #ffffff;
                 padding: 9px 12px;
@@ -190,14 +154,14 @@ def get_form():
             input:focus, textarea:focus {
                 outline: none;
                 border-color: var(--gold-accent);
-                background: rgba(12, 18, 14, 0.9);
+                background: rgba(12, 18, 14, 0.92);
                 box-shadow: 0 0 10px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
                 color: #a8d5be;
-                background: rgba(0, 0, 0, 0.45);
-                border-color: rgba(255, 255, 255, 0.04);
+                background: rgba(0, 0, 0, 0.5);
+                border-color: rgba(255, 255, 255, 0.05);
             }
             textarea { resize: vertical; min-height: 52px; }
 
@@ -209,12 +173,12 @@ def get_form():
             }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                border: 1px dashed rgba(212, 175, 55, 0.35);
+                border: 1px dashed rgba(212, 175, 55, 0.4);
                 border-radius: 6px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: rgba(0, 0, 0, 0.35);
+                background: rgba(0, 0, 0, 0.4);
                 cursor: pointer;
                 overflow: hidden;
                 position: relative;
@@ -222,7 +186,7 @@ def get_form():
             }
             .img-slot:hover {
                 border-color: var(--gold-accent);
-                background: rgba(212, 175, 55, 0.08);
+                background: rgba(212, 175, 55, 0.1);
             }
             .img-slot img {
                 width: 100%;
@@ -231,7 +195,7 @@ def get_form():
             }
             .img-slot span {
                 font-size: 18px;
-                color: rgba(212, 175, 55, 0.6);
+                color: rgba(212, 175, 55, 0.7);
             }
             #file_input { display: none; }
 
@@ -248,12 +212,12 @@ def get_form():
                 border-radius: 7px;
                 margin-top: 14px;
                 text-transform: uppercase;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
                 transition: all 0.25s ease;
             }
             .btn-action:hover {
                 background: linear-gradient(135deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 15px var(--gold-glow);
+                box-shadow: 0 0 16px var(--gold-glow);
                 transform: translateY(-1px);
             }
             .btn-action:disabled {
@@ -277,12 +241,8 @@ def get_form():
             <div class="thai-ribbon"></div>
             
             <div class="header-badge">
-                <div class="phantom-patch-frame">
-                    <img src="https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=300&q=80" style="display:none;" alt="">
-                    <div style="font-size: 38px;">🦅</div>
-                </div>
                 <h1 class="title-main">PHANTOM SITREP</h1>
-                <div class="title-sub">FPV RECON & TACTICAL STRIKE FEED</div>
+                <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
             </div>
 
             <div class="grid-2">
