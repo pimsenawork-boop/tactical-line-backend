@@ -37,7 +37,6 @@ class ReportPayload(BaseModel):
 def read_root():
     return {"status": "Tactical PHANTOM System Active"}
 
-# ให้บริการไฟล์รูปภาพพื้นหลังที่อัปโหลด (bg.jpg)
 @app.get("/bg.jpg")
 def get_background_image():
     if os.path.exists("bg.jpg"):
@@ -57,23 +56,24 @@ def get_form():
         <style>
             :root {
                 --gold-accent: #d4af37;
-                --gold-glow: rgba(212, 175, 55, 0.4);
-                --panel-bg: rgba(14, 18, 16, 0.85);
-                --input-bg: rgba(7, 10, 8, 0.72);
-                --border-subtle: rgba(212, 175, 55, 0.3);
+                --gold-glow: rgba(212, 175, 55, 0.35);
+                --panel-solid: #111613; /* พื้นหลังกล่องทึบ ป้องกันพื้นหลังทะลุ */
+                --input-solid: #18201b; /* พื้นหลังช่องกรอกทึบ อ่านง่ายสบายตา */
+                --border-subtle: #2d3830;
+                --border-focus: #d4af37;
                 --thai-red: #a51c24;
                 --thai-blue: #1c2c59;
             }
             * { box-sizing: border-box; }
             
-            /* ดึงภาพ bg.jpg จาก Server ตัวเองโดยตรง */
+            /* พื้นหลังหน้าเว็บหลัก */
             body {
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
                 background-color: #060907;
                 background-image: 
-                    linear-gradient(rgba(5, 8, 6, 0.55), rgba(5, 8, 6, 0.75)),
+                    linear-gradient(rgba(5, 8, 6, 0.4), rgba(5, 8, 6, 0.65)),
                     url('/bg.jpg');
                 background-size: cover;
                 background-position: center center;
@@ -86,16 +86,15 @@ def get_form():
                 align-items: center;
             }
 
+            /* กล่องฟอร์มหลัก - ตัดพื้นหลังทึบพิเศษ ไม่ให้ภาพด้านหลังแย่งสายตา */
             .hud-container {
                 width: 100%;
                 max-width: 520px;
-                background: var(--panel-bg);
-                border: 1px solid var(--border-subtle);
+                background: var(--panel-solid);
+                border: 2px solid var(--border-subtle);
                 border-radius: 14px;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(212, 175, 55, 0.15);
+                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.8);
                 padding: 24px 22px;
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
                 position: relative;
                 overflow: hidden;
             }
@@ -112,7 +111,6 @@ def get_form():
                     var(--thai-blue) 40% 60%, 
                     #fff 60% 80%, 
                     var(--thai-red) 80% 100%);
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
             }
 
             .header-badge {
@@ -122,13 +120,13 @@ def get_form():
             }
 
             .title-main {
-                font-size: 20px;
+                font-size: 21px;
                 font-weight: 700;
                 color: var(--gold-accent);
                 letter-spacing: 2.5px;
                 text-transform: uppercase;
                 margin: 0;
-                text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
             }
             .title-sub {
                 font-family: 'Share Tech Mono', monospace;
@@ -148,38 +146,40 @@ def get_form():
             }
             label {
                 display: block;
-                font-size: 12px;
+                font-size: 12.5px;
                 font-weight: 600;
-                color: #9cb1a5;
+                color: #a2b5aa;
                 margin-bottom: 5px;
                 letter-spacing: 0.5px;
             }
 
+            /* ช่องกรอกข้อมูลสีทึบ ชัดเจน ไม่กลืนกับพื้นหลัง */
             input, textarea {
                 width: 100%;
-                background: var(--input-bg);
-                border: 1px solid rgba(255, 255, 255, 0.09);
+                background: var(--input-solid) !important;
+                border: 1px solid var(--border-subtle);
                 border-radius: 8px;
                 color: #ffffff;
                 padding: 10px 12px;
                 font-family: 'Chakra Petch', sans-serif;
-                font-size: 13.5px;
+                font-size: 14px;
                 transition: all 0.25s ease;
             }
             input:focus, textarea:focus {
                 outline: none;
-                border-color: var(--gold-accent);
-                background: rgba(12, 18, 14, 0.95);
-                box-shadow: 0 0 12px var(--gold-glow);
+                border-color: var(--border-focus);
+                background: #1f2a24 !important;
+                box-shadow: 0 0 10px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
-                color: #a8d5be;
-                background: rgba(0, 0, 0, 0.45);
-                border-color: rgba(255, 255, 255, 0.04);
+                color: #7ee0ad;
+                background: #0d120f !important;
+                border-color: #1a241e;
             }
-            textarea { resize: vertical; min-height: 52px; }
+            textarea { resize: vertical; min-height: 55px; }
 
+            /* 5 ช่องสี่เหลี่ยมแนบภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -188,12 +188,12 @@ def get_form():
             }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                border: 1px dashed rgba(212, 175, 55, 0.35);
+                border: 1px dashed var(--border-subtle);
                 border-radius: 7px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: rgba(0, 0, 0, 0.35);
+                background: var(--input-solid);
                 cursor: pointer;
                 overflow: hidden;
                 position: relative;
@@ -201,7 +201,7 @@ def get_form():
             }
             .img-slot:hover {
                 border-color: var(--gold-accent);
-                background: rgba(212, 175, 55, 0.1);
+                background: #232d27;
             }
             .img-slot img {
                 width: 100%;
@@ -209,14 +209,14 @@ def get_form():
                 object-fit: cover;
             }
             .img-slot span {
-                font-size: 18px;
-                color: rgba(212, 175, 55, 0.65);
+                font-size: 20px;
+                color: var(--gold-accent);
             }
             #file_input { display: none; }
 
             .btn-action {
                 width: 100%;
-                background: linear-gradient(135deg, #a88424 0%, #614a10 100%);
+                background: linear-gradient(180deg, #a88424 0%, #614a10 100%);
                 border: 1px solid var(--gold-accent);
                 color: #fff;
                 padding: 12px;
@@ -225,14 +225,14 @@ def get_form():
                 letter-spacing: 2px;
                 cursor: pointer;
                 border-radius: 8px;
-                margin-top: 14px;
+                margin-top: 15px;
                 text-transform: uppercase;
-                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
                 transition: all 0.25s ease;
             }
             .btn-action:hover {
-                background: linear-gradient(135deg, #c49d32 0%, #7d6017 100%);
-                box-shadow: 0 0 18px var(--gold-glow);
+                background: linear-gradient(180deg, #c49d32 0%, #7d6017 100%);
+                box-shadow: 0 0 15px var(--gold-glow);
                 transform: translateY(-1px);
             }
             .btn-action:disabled {
@@ -245,7 +245,7 @@ def get_form():
             }
             .status-tag {
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 10.5px;
+                font-size: 11px;
                 color: #8da196;
                 margin-top: 4px;
             }
@@ -436,4 +436,3 @@ async def submit_report(payload: ReportPayload):
 
 @app.post("/callback")
 async def callback(request: Request):
-    return Response(content="OK", status_code=200)
