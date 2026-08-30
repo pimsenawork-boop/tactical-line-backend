@@ -37,10 +37,18 @@ class ReportPayload(BaseModel):
 def read_root():
     return {"status": "Tactical PHANTOM System Active"}
 
+# ให้บริการไฟล์รูปภาพพื้นหลังเดิม (สำหรับช่องกรอกข้อมูล)
 @app.get("/bg.jpg")
-def get_background_image():
+def get_old_background_image():
     if os.path.exists("bg.jpg"):
         return FileResponse("bg.jpg")
+    return Response(status_code=404)
+
+# ให้บริการไฟล์รูปภาพพื้นหลังใหม่ (สำหรับแบล็กกราวด์ด้านหลัง)
+@app.get("/bg_new.jpg")
+def get_new_background_image():
+    if os.path.exists("bg_new.jpg"):
+        return FileResponse("bg_new.jpg")
     return Response(status_code=404)
 
 @app.get("/form", response_class=HTMLResponse)
@@ -63,7 +71,7 @@ def get_form():
             }
             * { box-sizing: border-box; }
             
-            /* พื้นหลังหน้าเว็บหลัก */
+            /* พื้นหลังหน้าเว็บหลัก - เปลี่ยนไปใช้ภาพใหม่เป๊ะตามต้องการ */
             body {
                 margin: 0;
                 padding: 15px;
@@ -71,7 +79,7 @@ def get_form():
                 background-color: #060907;
                 background-image: 
                     linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)),
-                    url('/bg.jpg');
+                    url('/bg_new.jpg'); /* เปลี่ยนไปใช้ภาพพื้นหลังใหม่ */
                 background-size: cover;
                 background-position: center center;
                 background-repeat: no-repeat;
@@ -83,13 +91,13 @@ def get_form():
                 align-items: center;
             }
 
-            /* กล่องฟอร์มหลัก - ใช้รูปภาพ bg.jpg ลายเดียวกับพื้นหลัง */
+            /* กล่องฟอร์มหลัก - ยังคงใช้ภาพพื้นหลังเดิมเพื่อให้ลายช่องกรอกเหมือนเดิม */
             .hud-container {
                 width: 100%;
                 max-width: 520px;
                 background-image: 
                     linear-gradient(rgba(10, 15, 12, 0.8), rgba(6, 10, 8, 0.88)),
-                    url('/bg.jpg');
+                    url('/bg.jpg'); /* ใช้ภาพพื้นหลังเดิม */
                 background-size: cover;
                 background-position: center center;
                 border: 1.5px solid var(--border-subtle);
@@ -155,12 +163,12 @@ def get_form():
                 text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             }
 
-            /* ช่องกรอกข้อมูล - ใช้ภาพ bg.jpg เดียวกัน เนียนตาและเป็นเนื้อเดียวกับฉากหลัง */
+            /* ช่องกรอกข้อมูล - ยังคงใช้ภาพพื้นหลังเดิมเพื่อให้ลายช่องกรอกเหมือนเดิม */
             input, textarea {
                 width: 100%;
                 background-image: 
                     linear-gradient(rgba(5, 8, 6, 0.78), rgba(5, 8, 6, 0.88)),
-                    url('/bg.jpg');
+                    url('/bg.jpg'); /* ใช้ภาพพื้นหลังเดิม */
                 background-size: cover;
                 background-position: center;
                 border: 1px solid rgba(212, 175, 55, 0.3);
@@ -176,7 +184,7 @@ def get_form():
                 border-color: var(--gold-accent);
                 background-image: 
                     linear-gradient(rgba(12, 18, 14, 0.7), rgba(12, 18, 14, 0.85)),
-                    url('/bg.jpg');
+                    url('/bg.jpg'); /* ใช้ภาพพื้นหลังเดิม */
                 box-shadow: 0 0 12px var(--gold-glow);
             }
             input[readonly] {
@@ -184,7 +192,7 @@ def get_form():
                 color: #7ee0ad;
                 background-image: 
                     linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.8)),
-                    url('/bg.jpg');
+                    url('/bg.jpg'); /* ใช้ภาพพื้นหลังเดิม */
                 border-color: rgba(255, 255, 255, 0.08);
             }
             textarea { resize: vertical; min-height: 55px; }
@@ -200,7 +208,7 @@ def get_form():
                 aspect-ratio: 1 / 1;
                 background-image: 
                     linear-gradient(rgba(5, 8, 6, 0.65), rgba(5, 8, 6, 0.75)),
-                    url('/bg.jpg');
+                    url('/bg.jpg'); /* ใช้ภาพพื้นหลังเดิม */
                 background-size: cover;
                 background-position: center;
                 border: 1px dashed rgba(212, 175, 55, 0.4);
