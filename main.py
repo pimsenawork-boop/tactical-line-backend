@@ -31,11 +31,11 @@ class ReportPayload(BaseModel):
     latitude: float
     longitude: float
     images: Optional[List[str]] = []
-    user_id: str = "Field_Operator"
+    user_id: str = "PHANTOM_OPERATOR"
 
 @app.get("/")
 def read_root():
-    return {"status": "Tactical Bot Online"}
+    return {"status": "Tactical PHANTOM System Active"}
 
 @app.get("/form", response_class=HTMLResponse)
 def get_form():
@@ -45,25 +45,34 @@ def get_form():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <title>TACTICAL SITREP INTERFACE</title>
-        <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+        <title>PHANTOM TACTICAL SITREP</title>
+        <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
         <style>
             :root {
-                --tactical-green: #00ff66;
-                --tactical-dark: #0a0e0d;
-                --tactical-panel: rgba(12, 20, 16, 0.88);
-                --tactical-border: #1f3d2e;
-                --hud-cyan: #00e5ff;
-                --danger-red: #ff3333;
+                --gold-accent: #d4af37;
+                --gold-glow: rgba(212, 175, 55, 0.4);
+                --olive-dark: #121915;
+                --panel-bg: rgba(14, 19, 16, 0.78);
+                --input-bg: rgba(8, 12, 10, 0.65);
+                --border-subtle: rgba(212, 175, 55, 0.25);
+                --thai-red: #a51c24;
+                --thai-blue: #1c2c59;
             }
             * { box-sizing: border-box; }
             body {
                 margin: 0;
                 padding: 15px;
                 font-family: 'Chakra Petch', sans-serif;
-                background: linear-gradient(rgba(10, 14, 13, 0.82), rgba(10, 14, 13, 0.92)),
-                            url('https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&w=1920&q=80') center/cover fixed no-repeat;
-                color: #d1e7dd;
+                background-color: #0b0d0c;
+                background-image: 
+                    radial-gradient(circle at 50% 20%, rgba(28, 44, 89, 0.35) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(165, 28, 36, 0.25) 0%, transparent 40%),
+                    linear-gradient(180deg, rgba(8, 12, 10, 0.88) 0%, rgba(5, 8, 6, 0.94) 100%),
+                    url('https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1920&q=80');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                color: #e2e8e5;
                 min-height: 100vh;
                 display: flex;
                 justify-content: center;
@@ -71,96 +80,121 @@ def get_form():
             }
             .hud-container {
                 width: 100%;
-                max-width: 580px;
-                background: var(--tactical-panel);
-                border: 2px solid var(--tactical-border);
-                border-radius: 6px;
-                box-shadow: 0 0 25px rgba(0, 255, 102, 0.15), inset 0 0 15px rgba(0, 0, 0, 0.8);
-                padding: 20px;
-                backdrop-filter: blur(8px);
+                max-width: 520px;
+                background: var(--panel-bg);
+                border: 1px solid var(--border-subtle);
+                border-radius: 12px;
+                box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.1);
+                padding: 22px 20px;
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                position: relative;
+                overflow: hidden;
+            }
+            /* แถบธงชาติไทยมุมบนขวา */
+            .thai-ribbon {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 70px;
+                height: 5px;
+                background: linear-gradient(90deg, 
+                    var(--thai-red) 0% 20%, 
+                    #fff 20% 40%, 
+                    var(--thai-blue) 40% 60%, 
+                    #fff 60% 80%, 
+                    var(--thai-red) 80% 100%);
+                box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+            }
+            .header-badge {
+                text-align: center;
+                margin-bottom: 16px;
                 position: relative;
             }
-            .hud-container::before {
-                content: "[ RECON DRONE FEED // LIVE ]";
-                position: absolute;
-                top: 6px;
-                right: 15px;
-                font-family: 'Share Tech Mono', monospace;
-                font-size: 10px;
-                color: var(--tactical-green);
-                letter-spacing: 1px;
+            .phantom-icon {
+                font-size: 32px;
+                filter: drop-shadow(0 0 8px var(--gold-glow));
+                margin-bottom: 4px;
             }
-            .hud-title {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-size: 20px;
+            .title-main {
+                font-size: 19px;
                 font-weight: 700;
-                color: var(--tactical-green);
-                border-bottom: 1px solid var(--tactical-border);
-                padding-bottom: 10px;
-                margin-top: 5px;
-                margin-bottom: 15px;
-                letter-spacing: 1.5px;
+                color: var(--gold-accent);
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                margin: 0;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+            }
+            .title-sub {
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 11px;
+                color: #8b9b92;
+                letter-spacing: 1px;
             }
             .grid-2 {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                gap: 10px;
             }
             .form-group {
                 margin-bottom: 12px;
             }
             label {
                 display: block;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 600;
-                color: var(--hud-cyan);
+                color: #9cb1a5;
                 margin-bottom: 4px;
-                text-transform: uppercase;
                 letter-spacing: 0.5px;
             }
             input, textarea {
                 width: 100%;
-                background: rgba(4, 10, 7, 0.85);
-                border: 1px solid var(--tactical-border);
-                border-radius: 4px;
-                color: #fff;
-                padding: 8px 10px;
+                background: var(--input-bg);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 7px;
+                color: #ffffff;
+                padding: 9px 12px;
                 font-family: 'Chakra Petch', sans-serif;
-                font-size: 14px;
-                transition: border 0.3s, box-shadow 0.3s;
+                font-size: 13.5px;
+                transition: all 0.25s ease;
             }
             input:focus, textarea:focus {
                 outline: none;
-                border-color: var(--tactical-green);
-                box-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+                border-color: var(--gold-accent);
+                background: rgba(12, 18, 14, 0.9);
+                box-shadow: 0 0 10px var(--gold-glow);
             }
             input[readonly] {
                 font-family: 'Share Tech Mono', monospace;
-                color: #7ee0ad;
-                background: rgba(0, 0, 0, 0.6);
+                color: #a8d5be;
+                background: rgba(0, 0, 0, 0.45);
+                border-color: rgba(255, 255, 255, 0.04);
             }
-            textarea { resize: vertical; }
+            textarea { resize: vertical; min-height: 52px; }
 
-            /* ส่วนอัปโหลดภาพ */
+            /* Grid 5 ช่องสี่เหลี่ยมจัตุรัสสำหรับรูปภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
                 gap: 8px;
-                margin-top: 8px;
+                margin-top: 6px;
             }
             .img-slot {
                 aspect-ratio: 1 / 1;
-                border: 1px dashed var(--tactical-border);
-                border-radius: 4px;
+                border: 1px dashed rgba(212, 175, 55, 0.35);
+                border-radius: 6px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(0, 0, 0, 0.35);
                 cursor: pointer;
                 overflow: hidden;
                 position: relative;
+                transition: 0.2s;
+            }
+            .img-slot:hover {
+                border-color: var(--gold-accent);
+                background: rgba(212, 175, 55, 0.08);
             }
             .img-slot img {
                 width: 100%;
@@ -168,57 +202,62 @@ def get_form():
                 object-fit: cover;
             }
             .img-slot span {
-                font-size: 20px;
-                color: var(--tactical-border);
+                font-size: 18px;
+                color: rgba(212, 175, 55, 0.6);
             }
             #file_input { display: none; }
 
             .btn-action {
                 width: 100%;
-                background: linear-gradient(180deg, #107c41 0%, #0a4d28 100%);
-                border: 1px solid var(--tactical-green);
+                background: linear-gradient(135deg, #a88424 0%, #614a10 100%);
+                border: 1px solid var(--gold-accent);
                 color: #fff;
-                padding: 12px;
-                font-size: 16px;
+                padding: 11px;
+                font-size: 15px;
                 font-weight: 700;
                 letter-spacing: 2px;
                 cursor: pointer;
-                border-radius: 4px;
-                margin-top: 15px;
+                border-radius: 7px;
+                margin-top: 14px;
                 text-transform: uppercase;
-                box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
-                transition: 0.2s;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+                transition: all 0.25s ease;
             }
             .btn-action:hover {
-                background: var(--tactical-green);
-                color: #000;
-                box-shadow: 0 0 25px rgba(0, 255, 102, 0.6);
+                background: linear-gradient(135deg, #c49d32 0%, #7d6017 100%);
+                box-shadow: 0 0 15px var(--gold-glow);
+                transform: translateY(-1px);
             }
             .btn-action:disabled {
-                background: #2b3831;
-                border-color: #44594e;
-                color: #778c80;
+                background: #252826;
+                border-color: #3b403d;
+                color: #6a736e;
                 cursor: not-allowed;
                 box-shadow: none;
+                transform: none;
             }
             .status-tag {
                 font-family: 'Share Tech Mono', monospace;
-                font-size: 11px;
-                color: var(--tactical-green);
+                font-size: 10.5px;
+                color: #9cb1a5;
                 margin-top: 3px;
             }
         </style>
     </head>
     <body>
         <div class="hud-container">
-            <div class="hud-title">
-                <span>🛰️ TACTICAL MISSION REPORT</span>
+            <div class="thai-ribbon"></div>
+            
+            <div class="header-badge">
+                <div class="phantom-icon">🦅</div>
+                <h1 class="title-main">PHANTOM SITREP</h1>
+                <div class="title-sub">ROYAL THAI TACTICAL UNIT // RECON FEED</div>
             </div>
 
             <div class="grid-2">
                 <div class="form-group">
-                    <label>🔑 รหัสผ่านยุทธวิธี:</label>
-                    <input type="password" id="passcode" placeholder="PASSCODE">
+                    <label>🔑 รหัสผ่าน (Passcode):</label>
+                    <input type="password" id="passcode" placeholder="กรอกรหัส">
                 </div>
                 <div class="form-group">
                     <label>1. สถานการณ์:</label>
@@ -233,18 +272,18 @@ def get_form():
                 </div>
                 <div class="form-group">
                     <label>3. พิกัด GPS (LAT, LON):</label>
-                    <input type="text" id="coords_display" readonly placeholder="LOCKING SIGNAL...">
-                    <div id="gps_status" class="status-tag">⚡ GPS: ACQUIRING SATELLITE...</div>
+                    <input type="text" id="coords_display" readonly placeholder="จับสัญญาณดาวเทียม...">
+                    <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>4. รายละเอียดเหตุการณ์:</label>
+                <label>4. เหตุการณ์:</label>
                 <textarea id="incident" rows="2" placeholder="ระบุรายละเอียดสิ่งที่ตรวจพบ / รูปแบบเหตุการณ์"></textarea>
             </div>
 
             <div class="form-group">
-                <label>5. การปฏิบัติ / มาตรการตอบโต้:</label>
+                <label>5. การปฏิบัติ:</label>
                 <textarea id="action" rows="2" placeholder="ระบุการวางกำลัง / การใช้อาวุธ / การควบคุมพื้นที่"></textarea>
             </div>
 
@@ -258,10 +297,10 @@ def get_form():
                     <div class="img-slot" id="slot-3"><span>+</span></div>
                     <div class="img-slot" id="slot-4"><span>+</span></div>
                 </div>
-                <div id="img_count" class="status-tag" style="color: #00e5ff;">ATTACHED: 0 / 5 IMAGES</div>
+                <div id="img_count" class="status-tag">แนบภาพ: 0 / 5 ภาพ</div>
             </div>
 
-            <button id="submit_btn" class="btn-action" onclick="submitReport()">TRANSMIT REPORT</button>
+            <button id="submit_btn" class="btn-action" onclick="submitReport()">ส่งรายงานยุทธวิธี</button>
         </div>
 
         <script>
@@ -281,11 +320,12 @@ def get_form():
                         userLat = pos.coords.latitude;
                         userLon = pos.coords.longitude;
                         document.getElementById('coords_display').value = `${userLat.toFixed(6)}, ${userLon.toFixed(6)}`;
-                        document.getElementById('gps_status').innerText = "⚡ GPS: LOCKED & READY";
+                        document.getElementById('gps_status').innerText = "⚡ GPS: พิกัดพร้อมส่ง";
+                        document.getElementById('gps_status').style.color = "#d4af37";
                     },
                     (err) => {
-                        document.getElementById('gps_status').innerText = "⚠️ GPS: MANUAL/OFFLINE";
-                        document.getElementById('gps_status').style.color = "#ff3333";
+                        document.getElementById('gps_status').innerText = "⚠️ GPS: ออฟไลน์ / กำหนดเอง";
+                        document.getElementById('gps_status').style.color = "#e57373";
                     },
                     { enableHighAccuracy: true }
                 );
@@ -309,7 +349,7 @@ def get_form():
                     };
                     reader.readAsDataURL(file);
                 });
-                document.getElementById('img_count').innerText = `ATTACHED: ${count} / 5 IMAGES`;
+                document.getElementById('img_count').innerText = `แนบภาพ: ${count} / 5 ภาพ`;
             }
 
             async function submitReport() {
@@ -322,7 +362,7 @@ def get_form():
 
                 const btn = document.getElementById('submit_btn');
                 btn.disabled = true;
-                btn.innerText = "TRANSMITTING DATA...";
+                btn.innerText = "กำลังส่งข้อมูล...";
 
                 try {
                     const res = await fetch('/api/submit-report', {
@@ -341,17 +381,17 @@ def get_form():
 
                     const data = await res.json();
                     if (res.ok) {
-                        alert(' TRANSMISSION SUCCESS: ข้อมูลบันทึกเรียบร้อย');
+                        alert('✅ บันทึกรายงานเข้าสู่ระบบสำเร็จ');
                         location.reload();
                     } else {
-                        alert('❌ ERROR: ' + data.detail);
+                        alert('❌ ' + data.detail);
                         btn.disabled = false;
-                        btn.innerText = "TRANSMIT REPORT";
+                        btn.innerText = "ส่งรายงานยุทธวิธี";
                     }
                 } catch (e) {
                     alert('⚠️ การส่งข้อมูลล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ');
                     btn.disabled = false;
-                    btn.innerText = "TRANSMIT REPORT";
+                    btn.innerText = "ส่งรายงานยุทธวิธี";
                 }
             }
         </script>
@@ -370,9 +410,9 @@ async def submit_report(payload: ReportPayload):
     try:
         report_data = {
             "user_id": payload.user_id,
-            "report_type": "รายงานยุทธวิธี (Tactical HUD)",
+            "report_type": "รายงานยุทธวิธี (PHANTOM HUD)",
             "detail": (
-                f"เวลาปฏิบัติการ: {time_str}\n"
+                f"เวลา: {time_str}\n"
                 f"1. สถานการณ์: {payload.situation}\n"
                 f"3. เหตุการณ์: {payload.incident}\n"
                 f"5. การปฏิบัติ: {payload.action}\n"
