@@ -18,6 +18,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
 REPORT_PASSCODE = "phantom2"
+ADMIN_MAP_PASSCODE = "phantomadmin"
 
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
@@ -235,7 +236,7 @@ def get_form():
                 background: rgba(212, 175, 55, 0.3);
             }
 
-            /* --- MODERN GOOGLE MAPS MODAL --- */
+            /* --- MODERN MAP MODAL --- */
             #map-modal {
                 display: none;
                 position: fixed;
@@ -272,11 +273,16 @@ def get_form():
                 right: 15px;
                 z-index: 1000;
                 display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .map-top-row {
+                display: flex;
                 gap: 8px;
             }
             .search-box-wrapper {
                 flex: 1;
-                background: rgba(18, 24, 20, 0.9);
+                background: rgba(18, 24, 20, 0.92);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
@@ -303,7 +309,7 @@ def get_form():
                 width: 44px;
                 height: 44px;
                 border-radius: 50%;
-                background: rgba(18, 24, 20, 0.9);
+                background: rgba(18, 24, 20, 0.92);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.4);
@@ -317,6 +323,24 @@ def get_form():
                 transition: 0.2s;
             }
             .btn-circle-icon:active { transform: scale(0.92); }
+
+            .provider-selector-bar {
+                background: rgba(18, 24, 20, 0.92);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(212, 175, 55, 0.4);
+                border-radius: 10px;
+                padding: 4px 10px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            }
+            .provider-selector-bar select {
+                background: transparent;
+                border: none;
+                color: var(--gold-accent);
+                font-size: 12.5px;
+                font-weight: 600;
+                padding: 4px;
+                cursor: pointer;
+            }
 
             .map-floating-controls {
                 position: absolute;
@@ -411,7 +435,6 @@ def get_form():
             }
             .btn-confirm-pin:active { transform: scale(0.95); }
 
-            /* 5 ช่องสี่เหลี่ยมแนบภาพ */
             .img-grid {
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
@@ -558,7 +581,7 @@ def get_form():
             <div class="form-group" style="margin-top: -6px;">
                 <div class="gps-tools">
                     <button type="button" class="tool-btn" onclick="getAutoGPS()">🛰️ AUTO GPS</button>
-                    <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่ (MGRS)</button>
+                    <button type="button" class="tool-btn" onclick="openMapModal()">🗺️ ปักหมุดแผนที่ (Multi-Map)</button>
                     <button type="button" class="tool-btn" onclick="window.open('/map', '_blank')">🌐 แผนที่รวมยุทธวิธี</button>
                 </div>
                 <div id="gps_status" class="status-tag">⚡ GPS: ค้นหาพิกัด...</div>
@@ -590,27 +613,36 @@ def get_form():
             <button id="submit_btn" class="btn-action" onclick="submitReport()">ส่งรายงานยุทธวิธี</button>
         </div>
 
-        <!-- หน้าต่าง Google Maps Mode เต็มจอ -->
         <div id="map-modal">
             <div class="map-app-container">
                 <div id="tactical-map"></div>
 
-                <!-- Center Fixed Marker with Tactical Icon -->
                 <div class="center-pin-marker" id="center_pin">
                     <div class="pin-emoji-badge" id="marker_emoji_preview">🎯</div>
                     <div class="pin-shadow"></div>
                 </div>
 
                 <div class="map-top-bar">
-                    <div class="search-box-wrapper">
-                        <span style="font-size:14px; margin-right:4px;">🔍</span>
-                        <input type="text" id="map_search_input" placeholder="ค้นหาชื่อสถานที่ / อำเภอ / ค่าย..." onkeypress="if(event.key==='Enter') searchLocation()">
+                    <div class="map-top-row">
+                        <div class="search-box-wrapper">
+                            <span style="font-size:14px; margin-right:4px;">🔍</span>
+                            <input type="text" id="map_search_input" placeholder="ค้นหาชื่อสถานที่ / อำเภอ / ค่าย..." onkeypress="if(event.key==='Enter') searchLocation()">
+                        </div>
+                        <div class="btn-circle-icon" onclick="closeMapModal()" style="color:#ff6b6b; font-size:18px;">✕</div>
                     </div>
-                    <div class="btn-circle-icon" onclick="closeMapModal()" style="color:#ff6b6b; font-size:18px;">✕</div>
+
+                    <div class="provider-selector-bar">
+                        <select id="map_provider_select" onchange="changeMapProvider(this.value)">
+                            <option value="google_sat">🌐 Google Maps - ภาพถ่ายดาวเทียม (Hybrid)</option>
+                            <option value="esri_sat">🛰️ ESRI World Imagery - ดาวเทียมยุทธวิธีทหาร</option>
+                            <option value="google_road">🗺️ Google Maps - แผนที่ถนนมาตรฐาน</option>
+                            <option value="osm_road">🧭 OpenStreetMap - แผนที่เส้นทางชุมชน</option>
+                            <option value="opentopo">⛰️ OpenTopoMap - แผนที่ภูมิประเทศ/เส้นชั้นความสูง</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="map-floating-controls">
-                    <div class="btn-circle-icon" onclick="toggleMapLayer()" title="สลับดาวเทียม/แผนที่">🛰️</div>
                     <div class="btn-circle-icon" onclick="locateUserOnMap()" title="ล็อกตำแหน่ง GPS ตัวเอง">🎯</div>
                 </div>
 
@@ -635,8 +667,27 @@ def get_form():
             let currentMGRS = "";
             let imagesArray = [null, null, null, null, null];
             let activeSlotIndex = 0;
-            let map, satelliteLayer, standardLayer;
-            let isSatellite = true;
+            let map, currentLayer;
+
+            const mapLayers = {
+                google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+                }),
+                esri_sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19
+                }),
+                google_road: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+                }),
+                osm_road: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19
+                }),
+                opentopo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 17
+                })
+            };
 
             function updateTime() {
                 const now = new Date();
@@ -725,17 +776,8 @@ def get_form():
                         attributionControl: false
                     }).setView([currentPinLat, currentPinLon], 16);
 
-                    satelliteLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                        maxZoom: 20,
-                        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-                    });
-
-                    standardLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-                        maxZoom: 20,
-                        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-                    });
-
-                    satelliteLayer.addTo(map);
+                    currentLayer = mapLayers.google_sat;
+                    currentLayer.addTo(map);
 
                     const pinElement = document.getElementById('center_pin');
 
@@ -762,6 +804,14 @@ def get_form():
                 document.getElementById('sheet_mgrs').innerText = `MGRS: ${convertToMGRS(currentPinLat, currentPinLon)}`;
             }
 
+            function changeMapProvider(providerKey) {
+                if (map && mapLayers[providerKey]) {
+                    if (currentLayer) map.removeLayer(currentLayer);
+                    currentLayer = mapLayers[providerKey];
+                    currentLayer.addTo(map);
+                }
+            }
+
             function openMapModal() {
                 const modal = document.getElementById('map-modal');
                 modal.classList.add('show');
@@ -773,18 +823,6 @@ def get_form():
 
             function closeMapModal() {
                 document.getElementById('map-modal').classList.remove('show');
-            }
-
-            function toggleMapLayer() {
-                if (isSatellite) {
-                    map.removeLayer(satelliteLayer);
-                    standardLayer.addTo(map);
-                    isSatellite = false;
-                } else {
-                    map.removeLayer(standardLayer);
-                    satelliteLayer.addTo(map);
-                    isSatellite = true;
-                }
             }
 
             function locateUserOnMap() {
@@ -925,7 +963,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธวิธี (TACTICAL MAP DASHBOARD) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธวิธี (TACTICAL MAP DASHBOARD พร้อมระบบล็อกรหัสผ่าน) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -938,16 +976,92 @@ def get_map_dashboard():
         <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
+            :root {
+                --gold-accent: #d4af37;
+                --gold-glow: rgba(212, 175, 55, 0.45);
+                --thai-red: #a51c24;
+                --mgrs-green: #00ffcc;
+            }
             * { box-sizing: border-box; margin: 0; padding: 0; }
-            body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Chakra Petch', sans-serif; background: #000; }
+            body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Chakra Petch', sans-serif; background: #060907; }
             #dashboard-map { width: 100%; height: 100%; }
+
+            /* หน้าล็อกอินความปลอดภัย ADMIN PASSCODE GATE */
+            #auth-gate {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)), url('/bg_new.jpg') center/cover;
+                z-index: 99999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            .gate-box {
+                width: 100%;
+                max-width: 420px;
+                background: rgba(10, 15, 12, 0.94);
+                border: 1.5px solid var(--gold-accent);
+                border-radius: 14px;
+                padding: 30px 24px;
+                box-shadow: 0 0 35px rgba(212, 175, 55, 0.25);
+                text-align: center;
+                backdrop-filter: blur(12px);
+            }
+            .gate-title {
+                color: var(--gold-accent);
+                font-size: 20px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                margin-bottom: 6px;
+            }
+            .gate-subtitle {
+                font-family: 'Share Tech Mono', monospace;
+                font-size: 11px;
+                color: #8da196;
+                margin-bottom: 22px;
+                letter-spacing: 1px;
+            }
+            .gate-input {
+                width: 100%;
+                background: rgba(5, 8, 6, 0.85);
+                border: 1px solid rgba(212, 175, 55, 0.4);
+                border-radius: 8px;
+                color: #fff;
+                padding: 12px;
+                font-size: 16px;
+                text-align: center;
+                font-family: 'Chakra Petch', sans-serif;
+                margin-bottom: 16px;
+                outline: none;
+            }
+            .gate-input:focus {
+                border-color: var(--gold-accent);
+                box-shadow: 0 0 12px var(--gold-glow);
+            }
+            .gate-btn {
+                width: 100%;
+                background: linear-gradient(180deg, #d4af37 0%, #9a7b1c 100%);
+                border: 1px solid var(--gold-accent);
+                color: #000;
+                font-weight: 700;
+                font-size: 14px;
+                padding: 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            }
+            .gate-btn:active { transform: scale(0.98); }
             
+            /* แถบหัว Dashboard */
             .header-bar {
                 position: absolute;
                 top: 15px;
                 left: 15px;
                 z-index: 1000;
-                background: rgba(10, 15, 12, 0.9);
+                background: rgba(10, 15, 12, 0.92);
                 border: 1.5px solid #d4af37;
                 border-radius: 12px;
                 padding: 10px 18px;
@@ -956,6 +1070,28 @@ def get_map_dashboard():
             }
             .header-bar h2 { font-size: 16px; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
             .header-bar p { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffcc; margin: 2px 0 0 0; }
+
+            .map-switch-top {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 1000;
+                background: rgba(10, 15, 12, 0.92);
+                border: 1.5px solid #d4af37;
+                border-radius: 10px;
+                padding: 6px 12px;
+                backdrop-filter: blur(8px);
+            }
+            .map-switch-top select {
+                background: transparent;
+                border: none;
+                color: #d4af37;
+                font-family: 'Chakra Petch', sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                outline: none;
+            }
 
             .leaflet-popup-content-wrapper {
                 background: rgba(12, 18, 14, 0.95) !important;
@@ -977,83 +1113,133 @@ def get_map_dashboard():
         </style>
     </head>
     <body>
+        <!-- หน้าต่างปลดล็อกรหัสผ่านก่อนดูแผนที่ -->
+        <div id="auth-gate">
+            <div class="gate-box">
+                <div style="font-size: 38px; margin-bottom: 8px;">🔒</div>
+                <div class="gate-title">RESTRICTED ACCESS</div>
+                <div class="gate-subtitle">TACTICAL RADAR OPERATIONS // AUTH REQUIRED</div>
+                <input type="password" id="admin_key_input" class="gate-input" placeholder="กรอกรหัสผ่านผู้ดูแลระบบ" onkeypress="if(event.key==='Enter') verifyAdminKey()">
+                <button type="button" class="gate-btn" onclick="verifyAdminKey()">เข้าสู่ศูนย์แผนที่ยุทธวิธี</button>
+            </div>
+        </div>
+
         <div class="header-bar">
             <h2>🗺️ PHANTOM TACTICAL RADAR MAP</h2>
             <p id="total_reports">กำลังโหลดพิกัดรายงานยุทธวิธี...</p>
         </div>
+
+        <div class="map-switch-top">
+            <select onchange="changeDashboardLayer(this.value)">
+                <option value="google_sat">🌐 Google Maps (Satellite)</option>
+                <option value="esri_sat">🛰️ ESRI World Imagery (Mil)</option>
+                <option value="google_road">🗺️ Google Maps (Road)</option>
+                <option value="opentopo">⛰️ OpenTopoMap (Terrain)</option>
+            </select>
+        </div>
+
         <div id="dashboard-map"></div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
+            let currentAdminKey = "";
+
+            const layers = {
+                google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+                esri_sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+                google_road: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
+                opentopo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 })
+            };
+
             const map = L.map('dashboard-map', { attributionControl: false }).setView([14.967565, 102.081882], 12);
-            
-            L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-                maxZoom: 20,
-                subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-            }).addTo(map);
+            let activeLayer = layers.google_sat;
+            activeLayer.addTo(map);
 
-            async function loadReports() {
-                try {
-                    const res = await fetch('/api/get-all-reports');
-                    const data = await res.json();
-                    
-                    if (data && data.length > 0) {
-                        document.getElementById('total_reports').innerText = `ตรวจพบรายงานทั้งหมด: ${data.length} จุดยุทธวิธี`;
-                        const group = [];
-
-                        data.forEach(item => {
-                            if (item.latitude && item.longitude) {
-                                // ดึงอิโมจิจากข้อความ
-                                const detail = item.detail || "";
-                                let emoji = "🎯";
-                                const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี: (\\S+)/);
-                                if (match) emoji = match[1];
-
-                                const customIcon = L.divIcon({
-                                    className: 'custom-tactical-pin',
-                                    html: emoji,
-                                    iconSize: [30, 30],
-                                    iconAnchor: [15, 15]
-                                });
-
-                                const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
-                                
-                                let imgHtml = "";
-                                if (item.image_url) {
-                                    imgHtml = `<a href="${item.image_url}" target="_blank"><img src="${item.image_url}" class="popup-img"></a>`;
-                                }
-
-                                marker.bindPopup(`
-                                    <div style="min-width: 220px;">
-                                        <div style="font-size:15px; font-weight:bold; color:#d4af37; margin-bottom:4px;">${emoji} รายงานสถานการณ์</div>
-                                        <div style="font-size:12px; white-space: pre-line; color:#cfd8dc; line-height:1.4;">${detail}</div>
-                                        ${imgHtml}
-                                    </div>
-                                `);
-                                group.push([item.latitude, item.longitude]);
-                            }
-                        });
-
-                        if (group.length > 0) {
-                            map.fitBounds(group, { padding: [50, 50] });
-                        }
-                    } else {
-                        document.getElementById('total_reports').innerText = "ยังไม่มีรายงานในระบบ";
-                    }
-                } catch (e) {
-                    console.error("Fetch error:", e);
+            function changeDashboardLayer(k) {
+                if (layers[k]) {
+                    map.removeLayer(activeLayer);
+                    activeLayer = layers[k];
+                    activeLayer.addTo(map);
                 }
             }
 
-            loadReports();
+            async function verifyAdminKey() {
+                const key = document.getElementById('admin_key_input').value.trim();
+                if (!key) { alert('กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน'); return; }
+
+                try {
+                    const res = await fetch(`/api/get-all-reports?passcode=${encodeURIComponent(key)}`);
+                    if (res.status === 403 || res.status === 401) {
+                        alert('❌ รหัสผ่านความปลอดภัยไม่ถูกต้อง! ปฏิเสธการเข้าถึง');
+                        return;
+                    }
+                    const data = await res.json();
+                    
+                    // ปลดล็อกหน้าจอ
+                    document.getElementById('auth-gate').style.display = 'none';
+                    map.invalidateSize();
+                    
+                    renderMapData(data);
+                } catch (e) {
+                    alert('⚠️ เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์การเข้าถึง');
+                }
+            }
+
+            function renderMapData(data) {
+                if (data && data.length > 0) {
+                    document.getElementById('total_reports').innerText = `ตรวจพบรายงานทั้งหมด: ${data.length} จุดยุทธวิธี`;
+                    const group = [];
+
+                    data.forEach(item => {
+                        if (item.latitude && item.longitude) {
+                            const detail = item.detail || "";
+                            let emoji = "🎯";
+                            const match = detail.match(/🎖️ สัญลักษณ์ยุทธวิธี: (\\S+)/);
+                            if (match) emoji = match[1];
+
+                            const customIcon = L.divIcon({
+                                className: 'custom-tactical-pin',
+                                html: emoji,
+                                iconSize: [30, 30],
+                                iconAnchor: [15, 15]
+                            });
+
+                            const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
+                            
+                            let imgHtml = "";
+                            if (item.image_url) {
+                                imgHtml = `<a href="${item.image_url}" target="_blank"><img src="${item.image_url}" class="popup-img"></a>`;
+                            }
+
+                            marker.bindPopup(`
+                                <div style="min-width: 220px;">
+                                    <div style="font-size:15px; font-weight:bold; color:#d4af37; margin-bottom:4px;">${emoji} รายงานสถานการณ์</div>
+                                    <div style="font-size:12px; white-space: pre-line; color:#cfd8dc; line-height:1.4;">${detail}</div>
+                                    ${imgHtml}
+                                </div>
+                            `);
+                            group.push([item.latitude, item.longitude]);
+                        }
+                    });
+
+                    if (group.length > 0) {
+                        map.fitBounds(group, { padding: [50, 50] });
+                    }
+                } else {
+                    document.getElementById('total_reports').innerText = "ยังไม่มีรายงานในระบบ";
+                }
+            }
         </script>
     </body>
     </html>
     """
 
-# API สำหรับดึงรายงานทั้งหมดไปแสดงบนหน้าแผนที่
+# API สำหรับดึงรายงานทั้งหมด (ต้องส่ง passcode=phantomadmin มาตรวจสอบ)
 @app.get("/api/get-all-reports")
-def get_all_reports():
+def get_all_reports(passcode: str = ""):
+    if passcode != ADMIN_MAP_PASSCODE:
+        raise HTTPException(status_code=403, detail="สิทธิ์การเข้าถึงไม่ถูกต้อง กรุณากรอกรหัสผ่านความปลอดภัย")
+
     try:
         response = supabase.table("reports").select("*").order("created_at", desc=True).limit(100).execute()
         return response.data
