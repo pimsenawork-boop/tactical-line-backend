@@ -70,6 +70,17 @@ class DeleteReportPayload(BaseModel):
     passcode: str
     report_id: int
 
+class FireSupportPayload(BaseModel):
+    weapon_type: str
+    gun_coords: str
+    gun_mgrs: str
+    target_coords: str
+    target_mgrs: str
+    distance_meters: float
+    azimuth_deg: float
+    azimuth_mils: float
+    tof_seconds: int
+
 @app.get("/")
 def read_root():
     return {"status": "Tactical PHANTOM System Active", "form_url": "/form", "map_view": "/map"}
@@ -444,7 +455,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ พร้อมวอร์รูมฝั่งซ้าย (พับเก็บได้, ลบทีละตัวง่ายๆ, สภาพอากาศแม่นยำ ฝนตก, เข็มทิศละเอียด, ตัวกรองพร้อมจำนวนและซูมจุด, ไอคอนวอร์รูมไม่ซ้ำ) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center พร้อมระบบคำนวณการยิงสนับสนุน CFF) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -523,14 +534,32 @@ def get_map_dashboard():
             }
             .map-switch-top select { background: transparent; border: none; color: #d4af37; font-family: 'Chakra Petch', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; outline: none; }
 
-            /* --- ฟังก์ชันฝั่งซ้ายทั้งหมด (พับเก็บได้) --- */
+            /* --- ฝั่งซ้าย: รวมแผงควบคุมทั้งหมด พับเก็บได้ --- */
             .left-sidebar-container {
                 position: absolute; top: 80px; left: 15px; z-index: 1000;
                 display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 100px); overflow-y: auto;
             }
             .left-sidebar-container::-webkit-scrollbar { display: none; }
 
-            /* แผงวอร์รูมฝั่งซ้าย */
+            /* 1. แผงคำนวณการยิงสนับสนุน (Ballistics & Fire Support) */
+            .fire-support-panel {
+                background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
+                border: 1.5px solid #ff3838; border-radius: 14px;
+                padding: 12px 16px; display: flex; flex-direction: column; gap: 6px;
+                box-shadow: 0 12px 35px rgba(255,56,56,0.3); width: 310px; transition: 0.3s;
+            }
+            .fire-support-panel.collapsed { width: 180px; padding: 8px 12px; }
+            .fire-support-panel.collapsed .fire-content { display: none; }
+            .fire-title { font-size: 12px; font-weight: 700; color: #ff3838; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,56,56,0.4); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+            .fire-row { display: flex; justify-content: space-between; font-size: 12px; font-family: 'Share Tech Mono', monospace; color: #e2e8e5; margin-top: 2px; }
+            .fire-highlight { color: #00ffcc; font-weight: bold; }
+            .btn-fire-action {
+                background: linear-gradient(180deg, #ff3838 0%, #b71c1c 100%);
+                border: 1px solid #ff3838; color: #fff; font-weight: bold; font-size: 11.5px;
+                padding: 7px; border-radius: 6px; cursor: pointer; text-align: center; text-transform: uppercase; margin-top: 4px;
+            }
+
+            /* 2. แผงวอร์รูมวางแผน */
             .warroom-panel {
                 background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
                 border: 1.5px solid rgba(212, 175, 55, 0.5); border-radius: 14px;
@@ -540,7 +569,6 @@ def get_map_dashboard():
             .warroom-panel.collapsed { width: 180px; padding: 8px 12px; }
             .warroom-panel.collapsed .warroom-content { display: none; }
             .warroom-title { font-size: 12px; font-weight: 700; color: var(--gold-accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-            
             .section-label { font-size: 11px; color: #8da196; font-weight: 600; margin-top: 4px; }
             .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 2px; }
             .unit-btn {
@@ -564,7 +592,7 @@ def get_map_dashboard():
             .btn-clear-plan { background: rgba(229,57,53,0.25); border-color: #e53935; color: #ff6b6b; }
             .btn-mode { background: rgba(212,175,55,0.3); border-color: var(--gold-accent); color: var(--gold-accent); }
 
-            /* แผงสภาพอากาศทางทหารฝั่งซ้าย (เน้นฝนตก) */
+            /* 3. แผงสภาพอากาศทางทหาร */
             .weather-panel {
                 background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
                 border: 1.5px solid rgba(0, 255, 204, 0.5); border-radius: 12px;
@@ -575,7 +603,7 @@ def get_map_dashboard():
             .weather-title { font-size: 11.5px; font-weight: 700; color: #00ffcc; text-transform: uppercase; border-bottom: 1px solid rgba(0,255,204,0.3); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
             .weather-val { font-family: 'Share Tech Mono', monospace; font-size: 12.5px; color: #e2e8e5; margin-top: 3px; }
 
-            /* แผงกรองข้อมูลขั้นสูงแบบละเอียดฝั่งซ้าย */
+            /* 4. แผงกรองข้อมูลฉุกเฉิน */
             .advanced-filter-panel {
                 background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
                 border: 1.5px solid rgba(255, 152, 0, 0.5); border-radius: 12px;
@@ -588,10 +616,8 @@ def get_map_dashboard():
             .btn-adv-filter { background: rgba(25,38,30,0.9); border: 1px solid rgba(255,152,0,0.4); color: #ff9800; font-size: 11px; font-weight: bold; padding: 6px; border-radius: 6px; cursor: pointer; text-align: center; }
             .btn-adv-filter.active { background: #ff9800; color: #000; border-color: #fff; }
 
-            /* ไอคอนหน่วยรบวอร์รูมมีขอบเด่นชัด */
             .huge-tactical-pin { font-size: 34px !important; text-align: center; filter: drop-shadow(0 0 4px #000) drop-shadow(0 2px 6px rgba(0,0,0,0.95)); cursor: pointer; line-height: 34px; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 50%; background: rgba(10,15,12,0.6); padding: 2px; }
 
-            /* เข็มทิศดิจิทัลทางทหาร */
             .tactical-compass {
                 position: absolute; bottom: 85px; right: 15px; z-index: 1000;
                 background: rgba(10, 16, 13, 0.92); backdrop-filter: blur(10px);
@@ -606,7 +632,6 @@ def get_map_dashboard():
                 padding: 4px 8px; font-size: 10px; border-radius: 6px; cursor: pointer; font-family: 'Chakra Petch', sans-serif;
             }
 
-            /* ฟอร์มปักหมุดส่งรายงาน 5 หัวข้อบนแผนที่ */
             #map-report-modal {
                 display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 20000;
@@ -747,17 +772,47 @@ def get_map_dashboard():
             <button type="button" onclick="searchDashboardLocation()">ค้นหา</button>
         </div>
 
-        <!-- แผงควบคุมทั้งหมดรวมอยู่ที่ฝั่งซ้าย (พับเก็บได้) -->
+        <!-- แผงควบคุมฝั่งซ้ายทั้งหมด (พับเก็บได้) -->
         <div class="left-sidebar-container" id="left_sidebar" style="display: none;">
             
-            <!-- 1. แผงวอร์รูมวางแผน -->
+            <!-- 1. แผงคำนวณการยิงสนับสนุน (Ballistics & Fire Support CFF) -->
+            <div class="fire-support-panel" id="fire_panel">
+                <div class="fire-title" onclick="toggleFirePanel()">
+                    <span>💥 คำนวณการยิงสนับสนุน (CFF)</span>
+                    <span id="fire_toggle_icon">▼ พับเก็บ</span>
+                </div>
+                <div class="fire-content">
+                    <div style="font-size:11px; color:#a2b5aa;">เลือกอาวุธยิงสนับสนุน:</div>
+                    <select id="fire_weapon_select" onchange="calculateBallistics()" style="background:rgba(0,0,0,0.7); border:1px solid #ff3838; color:#fff; padding:4px; font-size:11px; border-radius:5px; width:100%; margin-top:2px;">
+                        <option value="mortar_60">💣 ค. 60 มม. (ระยะ 70 - 3,500 ม.)</option>
+                        <option value="mortar_81" selected>💣 ค. 81 มม. (ระยะ 100 - 5,600 ม.)</option>
+                        <option value="mortar_120">💣 ค. 120 มม. (ระยะ 200 - 7,200 ม.)</option>
+                        <option value="arty_105">💥 ปืนใหญ่ 105 มม. (ระยะสูงสุด 11.5 กม.)</option>
+                        <option value="arty_155">💥 ปืนใหญ่ 155 มม. (ระยะสูงสุด 30 กม.)</option>
+                    </select>
+
+                    <div style="display:flex; gap:6px; margin-top:6px;">
+                        <button type="button" class="btn-draw-tool" id="btn_pick_gun" onclick="startPickFirePoint('GUN')" style="flex:1; border-color:#00ffcc; color:#00ffcc;">🎯 1. ที่ตั้งยิง (FOB)</button>
+                        <button type="button" class="btn-draw-tool" id="btn_pick_target" onclick="startPickFirePoint('TARGET')" style="flex:1; border-color:#ff3838; color:#ff3838;">🎯 2. เป้าหมาย</button>
+                    </div>
+
+                    <div class="fire-row" style="margin-top:6px;"><span>ระยะยิงจริง:</span><span class="fire-highlight" id="f_dist">0 ม. (0.00 กม.)</span></div>
+                    <div class="fire-row"><span>มุมทิศ (Azimuth):</span><span class="fire-highlight" id="f_azimuth">0° (0 Mils)</span></div>
+                    <div class="fire-row"><span>เวลาตกกระทบ (TOF):</span><span class="fire-highlight" id="f_tof">~0 วินาที</span></div>
+                    <div class="fire-row"><span>สถานะระยะยิง:</span><span id="f_status" style="color:#8da196;">รอระบุจุดยิงและเป้าหมาย</span></div>
+
+                    <button type="button" class="btn-fire-action" onclick="sendFireSupportToLine()">🚀 ส่งพิกัดยิงเข้า LINE (CALL FOR FIRE)</button>
+                </div>
+            </div>
+
+            <!-- 2. แผงวอร์รูมวางแผน -->
             <div class="warroom-panel" id="warroom_panel">
                 <div class="warroom-title" onclick="toggleWarroomPanel()">
                     <span>🛡️ วอร์รูม & เขตการรบ</span>
                     <span id="warroom_toggle_icon">▼ พับเก็บ</span>
                 </div>
                 <div class="warroom-content">
-                    <div class="section-label">📌 เลือกไอคอนหน่วยกำลังทหาร (ไม่ซ้ำ):</div>
+                    <div class="section-label">📌 เลือกไอคอนหน่วยกำลังทหาร:</div>
                     <div class="unit-selector-grid">
                         <div class="unit-btn" onclick="selectWarTool('UNIT', '🪖', 'กองกำลังพล', this)" title="กองกำลังพล">🪖</div>
                         <div class="unit-btn" onclick="selectWarTool('UNIT', '🚀', 'ปืนใหญ่/จรวด', this)" title="ปืนใหญ่">🚀</div>
@@ -797,7 +852,7 @@ def get_map_dashboard():
                 </div>
             </div>
 
-            <!-- 2. แผงสภาพอากาศทางทหาร (เน้นฝนตก) -->
+            <!-- 3. แผงสภาพอากาศทางทหาร (เน้นฝนตก) -->
             <div class="weather-panel" id="weather_panel">
                 <div class="weather-title" onclick="toggleWeatherPanel()">
                     <span>⛅ สภาพอากาศ & โอกาสฝนตก</span>
@@ -811,7 +866,7 @@ def get_map_dashboard():
                 </div>
             </div>
 
-            <!-- 3. แผงกรองข้อมูลฉุกเฉินขั้นสูง -->
+            <!-- 4. แผงกรองข้อมูลฉุกเฉิน -->
             <div class="advanced-filter-panel" id="adv_filter_panel">
                 <div class="filter-title" onclick="toggleAdvFilterPanel()">
                     <span>🚨 กรองข้อมูลฉุกเฉินทางยุทธวิธี</span>
@@ -900,6 +955,7 @@ def get_map_dashboard():
             let activeFilter = "ALL";
             let mapLayersGroup = L.layerGroup();
             let warUnitsLayer = L.layerGroup();
+            let fireSupportLayer = L.layerGroup();
             let searchMarker = null;
 
             let currentToolType = 'UNIT';
@@ -911,6 +967,20 @@ def get_map_dashboard():
             let drawingPoints = [];
             let selectedMapLatLng = null;
             let isCompassVisible = true;
+
+            // ตัวแปรระบบยิงสนับสนุน (Ballistics CFF)
+            let pickFireMode = null; // 'GUN' หรือ 'TARGET'
+            let gunLatLng = null;
+            let targetLatLng = null;
+            let currentBallisticsResult = null;
+
+            const weaponRanges = {
+                mortar_60: { name: "ค. 60 มม.", min: 70, max: 3500, lethalRadius: 20, speed: 170 },
+                mortar_81: { name: "ค. 81 มม.", min: 100, max: 5600, lethalRadius: 35, speed: 240 },
+                mortar_120: { name: "ค. 120 มม.", min: 200, max: 7200, lethalRadius: 60, speed: 310 },
+                arty_105: { name: "ปืนใหญ่ 105 มม.", min: 1000, max: 11500, lethalRadius: 50, speed: 450 },
+                arty_155: { name: "ปืนใหญ่ 155 มม.", min: 2000, max: 30000, lethalRadius: 80, speed: 680 }
+            };
 
             const layers = {
                 google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
@@ -924,8 +994,14 @@ def get_map_dashboard():
             activeLayer.addTo(map);
             mapLayersGroup.addTo(map);
             warUnitsLayer.addTo(map);
+            fireSupportLayer.addTo(map);
 
-            // พับเก็บแผงต่างๆ
+            function toggleFirePanel() {
+                const panel = document.getElementById('fire_panel');
+                const icon = document.getElementById('fire_toggle_icon');
+                panel.classList.toggle('collapsed');
+                icon.innerText = panel.classList.contains('collapsed') ? "▶ ขยาย" : "▼ พับเก็บ";
+            }
             function toggleWarroomPanel() {
                 const panel = document.getElementById('warroom_panel');
                 const icon = document.getElementById('warroom_toggle_icon');
@@ -950,6 +1026,117 @@ def get_map_dashboard():
                 document.getElementById('compass_toggle_btn').innerText = isCompassVisible ? "🧭 ซ่อนเข็มทิศ" : "🧭 แสดงเข็มทิศ";
             }
 
+            // --- ฟังก์ชันระบบคำนวณการยิงสนับสนุน (Ballistics CFF) ---
+            function startPickFirePoint(type) {
+                pickFireMode = type;
+                if (type === 'GUN') {
+                    document.getElementById('btn_pick_gun').style.background = '#00ffcc';
+                    document.getElementById('btn_pick_gun').style.color = '#000';
+                    alert('📍 คลิกบนแผนที่เพื่อระบุ "จุดที่ตั้งยิง (FOB / Gun Position)"');
+                } else {
+                    document.getElementById('btn_pick_target').style.background = '#ff3838';
+                    document.getElementById('btn_pick_target').style.color = '#fff';
+                    alert('🎯 คลิกบนแผนที่เพื่อระบุ "เป้าหมายข้าศึก (Target)"');
+                }
+            }
+
+            function calculateBearing(lat1, lon1, lat2, lon2) {
+                const toRad = deg => deg * Math.PI / 180;
+                const toDeg = rad => rad * 180 / Math.PI;
+                const dLon = toRad(lon2 - lon1);
+                const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+                const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+                let brng = toDeg(Math.atan2(y, x));
+                return (brng + 360) % 360;
+            }
+
+            function calculateBallistics() {
+                if (!gunLatLng || !targetLatLng) return;
+
+                fireSupportLayer.clearLayers();
+
+                const wKey = document.getElementById('fire_weapon_select').value;
+                const weapon = weaponRanges[wKey];
+
+                const p1 = L.latLng(gunLatLng.lat, gunLatLng.lng);
+                const p2 = L.latLng(targetLatLng.lat, targetLatLng.lng);
+
+                const distanceMeters = p1.distanceTo(p2);
+                const azimuthDeg = calculateBearing(gunLatLng.lat, gunLatLng.lng, targetLatLng.lat, targetLatLng.lng);
+                const azimuthMils = (azimuthDeg / 360) * 6400;
+                const tofSeconds = Math.round(distanceMeters / weapon.speed) + 2;
+
+                const gunMGRS = convertToMGRS(gunLatLng.lat, gunLatLng.lng);
+                const targetMGRS = convertToMGRS(targetLatLng.lat, targetLatLng.lng);
+
+                // แสดงผลบนหน้าจอ
+                document.getElementById('f_dist').innerText = `${distanceMeters.toFixed(0)} ม. (${(distanceMeters/1000).toFixed(2)} กม.)`;
+                document.getElementById('f_azimuth').innerText = `${azimuthDeg.toFixed(1)}° (${azimuthMils.toFixed(0)} Mils)`;
+                document.getElementById('f_tof').innerText = `~${tofSeconds} วินาที`;
+
+                const statusEl = document.getElementById('f_status');
+                if (distanceMeters < weapon.min) {
+                    statusEl.innerText = `⚠️ ใกล้เกินระยะยิงต่ำสุด (${weapon.min} ม.)`;
+                    statusEl.style.color = '#ff3838';
+                } else if (distanceMeters > weapon.max) {
+                    statusEl.innerText = `⚠️ เกินระยะยิงสูงสุด (${(weapon.max/1000).toFixed(1)} กม.)`;
+                    statusEl.style.color = '#ff3838';
+                } else {
+                    statusEl.innerText = `✅ อยู่ในระยะหวังผล (IN-RANGE)`;
+                    statusEl.style.color = '#00ffcc';
+                }
+
+                // วาดแนววิถีและวงรัศมีทำลายบนแผนที่
+                const gunMarker = L.marker([gunLatLng.lat, gunLatLng.lng], {
+                    icon: L.divIcon({ className: 'huge-tactical-pin', html: '🚀', iconSize: [36, 36], iconAnchor: [18, 18] })
+                }).addTo(fireSupportLayer).bindPopup(`<b>ที่ตั้งยิง (FOB):</b><br>${gunMGRS}`);
+
+                const targetMarker = L.marker([targetLatLng.lat, targetLatLng.lng], {
+                    icon: L.divIcon({ className: 'huge-tactical-pin', html: '🎯', iconSize: [36, 36], iconAnchor: [18, 18] })
+                }).addTo(fireSupportLayer).bindPopup(`<b>เป้าหมาย:</b><br>${targetMGRS}`);
+
+                const line = L.polyline([[gunLatLng.lat, gunLatLng.lng], [targetLatLng.lat, targetLatLng.lng]], {
+                    color: '#ff3838', weight: 3, dashArray: '4, 8'
+                }).addTo(fireSupportLayer);
+
+                const lethalCircle = L.circle([targetLatLng.lat, targetLatLng.lng], {
+                    radius: weapon.lethalRadius, color: '#ff3838', fillColor: '#ff3838', fillOpacity: 0.35, weight: 2
+                }).addTo(fireSupportLayer).bindPopup(`<b>รัศมีทำลายล้าง (${weapon.lethalRadius} ม.)</b>`);
+
+                currentBallisticsResult = {
+                    weapon_type: weapon.name,
+                    gun_coords: `${gunLatLng.lat.toFixed(6)}, ${gunLatLng.lng.toFixed(6)}`,
+                    gun_mgrs: gunMGRS,
+                    target_coords: `${targetLatLng.lat.toFixed(6)}, ${targetLatLng.lng.toFixed(6)}`,
+                    target_mgrs: targetMGRS,
+                    distance_meters: distanceMeters,
+                    azimuth_deg: azimuthDeg,
+                    azimuth_mils: azimuthMils,
+                    tof_seconds: tofSeconds
+                };
+            }
+
+            async function sendFireSupportToLine() {
+                if (!currentBallisticsResult) {
+                    alert('⚠️ กรุณาระบุที่ตั้งยิงและเป้าหมายบนแผนที่ก่อนส่งข้อมูล');
+                    return;
+                }
+                try {
+                    const res = await fetch('/api/send-fire-support', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(currentBallisticsResult)
+                    });
+                    if (res.ok) {
+                        alert('🚀 ส่งคำขอยิงสนับสนุน (CALL FOR FIRE) เข้ากลุ่ม LINE สำเร็จ!');
+                    } else {
+                        alert('❌ การส่งคำขอยิงล้มเหลว');
+                    }
+                } catch(e) {
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                }
+            }
+
             function selectWarTool(type, val1, val2, element) {
                 currentToolType = type;
                 document.querySelectorAll('.unit-btn, .btn-draw-tool').forEach(b => b.classList.remove('active'));
@@ -960,11 +1147,9 @@ def get_map_dashboard():
                 if (type === 'UNIT') {
                     selectedWarEmoji = val1;
                     selectedToolName = val2;
-                    document.getElementById('active_unit_status').innerText = `หน่วย: ${val1} ${val2}`;
                 } else if (type === 'DRAW') {
                     activeDrawShape = val1;
                     selectedToolName = val2;
-                    document.getElementById('active_unit_status').innerText = `วาด: ${val2}`;
                     drawingPoints = [];
                 }
             }
@@ -982,11 +1167,29 @@ def get_map_dashboard():
                 btn.style.background = isWarModeActive ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.1)";
             }
 
-            // ระบบคลิกวางแผนผัง (ลบทีละตัวได้ทันที ไม่ต้องใส่รหัส)
+            // ระบบคลิกบนแผนที่
             map.on('click', function(e) {
-                if (!isWarModeActive) return;
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
+
+                // ตรวจสอบโหมดเลือกจุดยิงสนับสนุน CFF ก่อน
+                if (pickFireMode === 'GUN') {
+                    gunLatLng = { lat, lng };
+                    pickFireMode = null;
+                    document.getElementById('btn_pick_gun').style.background = '';
+                    document.getElementById('btn_pick_gun').style.color = '#00ffcc';
+                    calculateBallistics();
+                    return;
+                } else if (pickFireMode === 'TARGET') {
+                    targetLatLng = { lat, lng };
+                    pickFireMode = null;
+                    document.getElementById('btn_pick_target').style.background = '';
+                    document.getElementById('btn_pick_target').style.color = '#ff3838';
+                    calculateBallistics();
+                    return;
+                }
+
+                if (!isWarModeActive) return;
 
                 if (currentToolType === 'UNIT') {
                     const hugeIcon = L.divIcon({
@@ -1043,8 +1246,12 @@ def get_map_dashboard():
                 const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการล้างแผนผังทั้งหมด (wisarut):");
                 if (pass === "wisarut") {
                     warUnitsLayer.clearLayers();
+                    fireSupportLayer.clearLayers();
                     drawingPoints = [];
-                    alert('✅ ล้างแผนผังทั้งหมดสำเร็จ');
+                    gunLatLng = null;
+                    targetLatLng = null;
+                    currentBallisticsResult = null;
+                    alert('✅ ล้างแผนผังและแนวการยิงทั้งหมดสำเร็จ');
                 } else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
             }
 
@@ -1082,7 +1289,6 @@ def get_map_dashboard():
                 } catch(e) { alert('เกิดข้อผิดพลาด'); }
             }
 
-            // ดึงสภาพอากาศแม่นยำ (เน้นโอกาสฝนตกและแรงลม)
             async function fetchTacticalWeather(lat, lon) {
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=precipitation_probability`);
@@ -1191,7 +1397,6 @@ def get_map_dashboard():
                 }
             }
 
-            // กรองข้อมูลด่วนด้านล่าง (กดแล้วซูมไปยังจุดที่เลือกอัตโนมัติ)
             function applyQuickFilter(emoji, chip) {
                 activeFilter = emoji;
                 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
@@ -1200,7 +1405,6 @@ def get_map_dashboard():
                 renderMapData(filtered, true);
             }
 
-            // กรองข้อมูลฉุกเฉินแบบละเอียดฝั่งซ้าย
             function applyAdvFilter(emoji, btn) {
                 document.querySelectorAll('.btn-adv-filter').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
@@ -1284,6 +1488,58 @@ def get_map_dashboard():
     </html>
     """
 
+# API สำหรับส่งคำขอยิงสนับสนุน (Call For Fire) เข้ากลุ่ม LINE
+@app.post("/api/send-fire-support")
+def send_fire_support(payload: FireSupportPayload):
+    if not CHANNEL_ACCESS_TOKEN:
+        return {"status": "no_token"}
+
+    target_id = TARGET_GROUP_ID
+    if not target_id:
+        try:
+            r = supabase.table("line_groups").select("group_id").order("created_at", desc=True).limit(1).execute()
+            if r.data: target_id = r.data[0].get("group_id")
+        except Exception as e: pass
+    if not target_id:
+        raise HTTPException(status_code=400, detail="No group ID found")
+
+    flex_json = {
+        "type": "bubble", "size": "mega",
+        "styles": {"header": {"backgroundColor": "#1a0505"}, "body": {"backgroundColor": "#0d0404"}, "footer": {"backgroundColor": "#1a0505"}},
+        "header": {
+            "type": "box", "layout": "vertical",
+            "contents": [
+                {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "PHANTOM FIRE MISSION", "weight": "bold", "color": "#ff3838", "size": "xs", "flex": 1}, {"type": "text", "text": "CALL FOR FIRE // CFF", "weight": "bold", "color": "#d4af37", "size": "xxs", "align": "end"}]},
+                {"type": "text", "text": f"🎯 คำขอยิงสนับสนุน: {payload.weapon_type}", "weight": "bold", "color": "#ffffff", "size": "md", "margin": "sm"}
+            ]
+        },
+        "body": {
+            "type": "box", "layout": "vertical", "spacing": "sm",
+            "contents": [
+                {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "พิกัดเป้าหมาย:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3}, {"type": "text", "text": payload.target_mgrs, "color": "#00ffcc", "size": "xs", "weight": "bold", "flex": 7}]},
+                {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "พิกัดที่ตั้งยิง:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3}, {"type": "text", "text": payload.gun_mgrs, "color": "#e0e6ed", "size": "xs", "flex": 7}]},
+                {"type": "separator", "color": "#4a1c1c", "margin": "md"},
+                {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "ระยะยิงจริง:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3}, {"type": "text", "text": f"{payload.distance_meters:.0f} ม. ({payload.distance_meters/1000:.2f} กม.)", "color": "#ffd700", "size": "xs", "weight": "bold", "flex": 7}]},
+                {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "มุมทิศ (Azimuth):", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3}, {"type": "text", "text": f"{payload.azimuth_deg:.1f}° ({payload.azimuth_mils:.0f} Mils)", "color": "#00ffcc", "size": "xs", "weight": "bold", "flex": 7}]},
+                {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "เวลาตกกระทบ:", "color": "#ff3838", "size": "xs", "weight": "bold", "flex": 3}, {"type": "text", "text": f"ประมาณ {payload.tof_seconds} วินาที", "color": "#e0e6ed", "size": "xs", "flex": 7}]}
+            ]
+        },
+        "footer": {
+            "type": "box", "layout": "horizontal", "spacing": "sm",
+            "contents": [
+                {"type": "button", "style": "primary", "color": "#b71c1c", "height": "sm", "action": {"type": "uri", "label": "🌐 แผนที่วอร์รูม", "uri": "https://tactical-line-backend.onrender.com/map"}}
+            ]
+        }
+    }
+
+    try:
+        with ApiClient(configuration) as api_client:
+            MessagingApi(api_client).push_message(PushMessageRequest(to=target_id, messages=[FlexMessage(alt_text=f"🚨 CALL FOR FIRE: {payload.weapon_type}", contents=FlexContainer.from_dict(flex_json))]))
+        return {"status": "success"}
+    except Exception as e:
+        print(f"Fire support LINE push error: {e}")
+        raise HTTPException(status_code=500, detail="Line Push Error")
+
 # API สำหรับดึงรายงานทั้งหมด
 @app.get("/api/get-all-reports")
 def get_all_reports(passcode: str = ""):
@@ -1320,7 +1576,7 @@ def delete_report(payload: DeleteReportPayload):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error")
 
-# --- ฟังก์ชันยิง LINE Flex Message ---
+# --- ฟังก์ชันยิง LINE Flex Message สำหรับรายงานยุทธวิธี ---
 def send_tactical_flex_to_line(payload: ReportPayload, time_str: str, image_urls: list):
     if not CHANNEL_ACCESS_TOKEN: return
     target_id = TARGET_GROUP_ID
