@@ -411,7 +411,7 @@ def get_form():
             }
             function confirmCenterPin() { userLat = currentPinLat; userLon = currentPinLon; updateCoordsDisplay(); closeMapModal(); }
             function triggerSlotUpload(i) { activeSlotIndex = i; document.getElementById('single_file_input').click(); }
-            function handleSingleFile(files) {
+            handleSingleFile = function(files) {
                 if (files[0]) {
                     const reader = new FileReader();
                     reader.onload = (e) => { imagesArray[activeSlotIndex] = e.target.result; renderSlot(activeSlotIndex); updateImgCount(); };
@@ -444,7 +444,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center พร้อมวอร์รูมวางแผนและสภาพอากาศสมบูรณ์) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center พร้อมวอร์รูมที่รองรับ 8 ไอคอนรายงานหลัก) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -541,7 +541,9 @@ def get_map_dashboard():
             .warroom-panel.collapsed .warroom-content { display: none; }
             .warroom-title { font-size: 12px; font-weight: 700; color: var(--gold-accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
             .section-label { font-size: 11px; color: #8da196; font-weight: 600; margin-top: 4px; }
-            .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 2px; }
+            
+            /* แสดงอิโมจิ 8 หัวข้อรายงานหลัก */
+            .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 150px; overflow-y: auto; padding-right: 2px; }
             .unit-btn {
                 background: rgba(25, 38, 30, 0.9); border: 1.5px solid rgba(212, 175, 55, 0.4);
                 border-radius: 8px; padding: 6px; font-size: 24px; text-align: center; cursor: pointer; transition: 0.2s;
@@ -732,27 +734,23 @@ def get_map_dashboard():
         <!-- แผงควบคุมฝั่งซ้าย (วอร์รูม และสภาพอากาศ) -->
         <div class="left-sidebar-container" id="left_sidebar" style="display: none;">
             
-            <!-- 1. แผงวอร์รูมวางแผน -->
+            <!-- แผงวอร์รูมวางแผน (รองรับ 8 ไอคอนรายงานหลัก) -->
             <div class="warroom-panel" id="warroom_panel">
                 <div class="warroom-title" onclick="toggleWarroomPanel()">
                     <span>🛡️ วอร์รูม & เขตการรบ</span>
                     <span id="warroom_toggle_icon">▼ พับเก็บ</span>
                 </div>
                 <div class="warroom-content">
-                    <div class="section-label">📌 เลือกไอคอนหน่วยกำลังทหาร (ไม่ซ้ำ):</div>
+                    <div class="section-label">📌 เลือกสัญลักษณ์ยุทธวิธี (วางแผนกำลัง):</div>
                     <div class="unit-selector-grid">
-                        <div class="unit-btn active" onclick="selectWarTool('UNIT', '🪖', 'กองกำลังพล', this)" title="กองกำลังพล">🪖</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚀', 'ปืนใหญ่/จรวด', this)" title="ปืนใหญ่">🚀</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🛑', 'จุดสกัด', this)" title="จุดสกัด">🛑</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⚡', 'หน่วยจู่โจม', this)" title="หน่วยจู่โจม">⚡</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '✈️', 'เครื่องบินรบ', this)" title="เครื่องบินรบ">✈️</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚙', 'รถหุ้มเกราะ', this)" title="รถหุ้มเกราะ">🚙</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚒', 'รถพยาบาล', this)" title="รถพยาบาล">🚒</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⚓', 'ฐานทัพเรือ', this)" title="ฐานทัพเรือ">⚓</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🧱', 'แนวป้องกัน', this)" title="แนวป้องกัน">🧱</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⛽', 'คลังเชื้อเพลิง', this)" title="คลังเชื้อเพลิง">⛽</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '☣️', 'สารเคมี/ชีวะ', this)" title="สารเคมี">☣️</div>
-                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🏁', 'จุดหมายปลายทาง', this)" title="จุดหมาย">🏁</div>
+                        <div class="unit-btn active" onclick="selectWarTool('UNIT', '🎯', 'ตรวจพบเป้าหมาย', this)" title="เป้าหมาย">🎯</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⚔️', 'จุดปะทะ/ใช้อาวุธ', this)" title="จุดปะทะ">⚔️</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🛡️', 'ฐานปฏิบัติการ/ที่มั่น', this)" title="ฐานที่มั่น">🛡️</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⚠️', 'วัตถุต้องสงสัย/IED', this)" title="วัตถุต้องสงสัย">⚠️</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚁', 'จุดส่งกลับ/ลาน ฮ.', this)" title="ลาน ฮ.">🚁</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⛺', 'จุดตรวจ/ค่ายพัก', this)" title="จุดตรวจ">⛺</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '💧', 'แหล่งน้ำ/เสบียง', this)" title="แหล่งเสบียง">💧</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '📡', 'ที่ตั้งสื่อสาร/เรดาร์', this)" title="สถานีสื่อสาร">📡</div>
                     </div>
 
                     <div class="section-label" style="margin-top:6px;">🎨 เลือกสีเขตแนวรบ:</div>
@@ -778,7 +776,7 @@ def get_map_dashboard():
                 </div>
             </div>
 
-            <!-- 2. แผงสภาพอากาศทางทหาร -->
+            <!-- แผงสภาพอากาศทางทหาร -->
             <div class="weather-panel" id="weather_panel">
                 <div class="weather-title" onclick="toggleWeatherPanel()">
                     <span>⛅ สภาพอากาศ & โอกาสฝนตก</span>
@@ -863,8 +861,8 @@ def get_map_dashboard():
             let searchMarker = null;
 
             let currentToolType = 'UNIT';
-            let selectedWarEmoji = '🪖';
-            let selectedToolName = 'กองกำลังพล';
+            let selectedWarEmoji = '🎯';
+            let selectedToolName = 'ตรวจพบเป้าหมาย';
             let activeDrawShape = 'LINE';
             let activeColor = '#ff3838';
             let isWarModeActive = true;
