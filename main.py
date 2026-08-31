@@ -444,7 +444,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center พร้อมวอร์รูมพับเก็บได้, สภาพอากาศ, เข็มทิศ และปักหมุดส่งรายงาน 5 หัวข้อ) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ พร้อมวอร์รูมฝั่งซ้าย (พับเก็บได้, ลบทีละตัวง่ายๆ, สภาพอากาศแม่นยำ ฝนตก, เข็มทิศละเอียด, ตัวกรองพร้อมจำนวนและซูมจุด, ไอคอนวอร์รูมไม่ซ้ำ) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -523,9 +523,15 @@ def get_map_dashboard():
             }
             .map-switch-top select { background: transparent; border: none; color: #d4af37; font-family: 'Chakra Petch', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; outline: none; }
 
-            /* แผงวอร์รูมแบบพับเก็บได้ */
-            .warroom-panel {
+            /* --- ฟังก์ชันฝั่งซ้ายทั้งหมด (พับเก็บได้) --- */
+            .left-sidebar-container {
                 position: absolute; top: 80px; left: 15px; z-index: 1000;
+                display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 100px); overflow-y: auto;
+            }
+            .left-sidebar-container::-webkit-scrollbar { display: none; }
+
+            /* แผงวอร์รูมฝั่งซ้าย */
+            .warroom-panel {
                 background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
                 border: 1.5px solid rgba(212, 175, 55, 0.5); border-radius: 14px;
                 padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;
@@ -538,48 +544,64 @@ def get_map_dashboard():
             .section-label { font-size: 11px; color: #8da196; font-weight: 600; margin-top: 4px; }
             .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 140px; overflow-y: auto; padding-right: 2px; }
             .unit-btn {
-                background: rgba(25, 38, 30, 0.9); border: 1px solid rgba(212, 175, 55, 0.35);
-                border-radius: 8px; padding: 6px; font-size: 22px; text-align: center; cursor: pointer; transition: 0.2s;
+                background: rgba(25, 38, 30, 0.9); border: 1.5px solid rgba(212, 175, 55, 0.4);
+                border-radius: 8px; padding: 6px; font-size: 24px; text-align: center; cursor: pointer; transition: 0.2s;
             }
             .unit-btn:hover { border-color: var(--gold-accent); transform: scale(1.1); background: rgba(212,175,55,0.25); }
             .unit-btn.active { border-color: #00ffcc; background: rgba(0,255,204,0.3); box-shadow: 0 0 12px #00ffcc; }
+            
             .color-palette { display: flex; gap: 6px; margin-top: 2px; }
             .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
             .color-dot.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 10px rgba(255,255,255,0.6); }
+            
             .draw-tools-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
             .btn-draw-tool { background: rgba(25,38,30,0.9); border: 1px solid rgba(212,175,55,0.4); color: #cfd8dc; font-size: 11px; font-weight: bold; padding: 6px 4px; border-radius: 6px; cursor: pointer; text-align: center; }
             .btn-draw-tool.active { background: #d4af37; color: #000; border-color: #fff; }
+            
             .warroom-actions { display: flex; gap: 6px; margin-top: 6px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 6px; }
             .btn-war { flex: 1; padding: 7px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; border: 1px solid; }
             .btn-save-plan { background: rgba(0,255,204,0.3); border-color: #00ffcc; color: #00ffcc; }
             .btn-clear-plan { background: rgba(229,57,53,0.25); border-color: #e53935; color: #ff6b6b; }
             .btn-mode { background: rgba(212,175,55,0.3); border-color: var(--gold-accent); color: var(--gold-accent); }
 
-            /* แผงสภาพอากาศทางทหารแบบพับเก็บได้ */
+            /* แผงสภาพอากาศทางทหารฝั่งซ้าย (เน้นฝนตก) */
             .weather-panel {
-                position: absolute; top: 80px; right: 15px; z-index: 1000;
                 background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
-                border: 1.5px solid rgba(0, 255, 204, 0.4); border-radius: 12px;
-                padding: 10px 14px; width: 240px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: 0.3s;
+                border: 1.5px solid rgba(0, 255, 204, 0.5); border-radius: 12px;
+                padding: 10px 14px; width: 310px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: 0.3s;
             }
-            .weather-panel.collapsed { width: 140px; padding: 6px 10px; }
+            .weather-panel.collapsed { width: 180px; padding: 6px 10px; }
             .weather-panel.collapsed .weather-content { display: none; }
             .weather-title { font-size: 11.5px; font-weight: 700; color: #00ffcc; text-transform: uppercase; border-bottom: 1px solid rgba(0,255,204,0.3); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
             .weather-val { font-family: 'Share Tech Mono', monospace; font-size: 12.5px; color: #e2e8e5; margin-top: 3px; }
 
+            /* แผงกรองข้อมูลขั้นสูงแบบละเอียดฝั่งซ้าย */
+            .advanced-filter-panel {
+                background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
+                border: 1.5px solid rgba(255, 152, 0, 0.5); border-radius: 12px;
+                padding: 10px 14px; width: 310px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: 0.3s;
+            }
+            .advanced-filter-panel.collapsed { width: 180px; padding: 6px 10px; }
+            .advanced-filter-panel.collapsed .filter-content { display: none; }
+            .filter-title { font-size: 11.5px; font-weight: 700; color: #ff9800; text-transform: uppercase; border-bottom: 1px solid rgba(255,152,0,0.3); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+            .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+            .btn-adv-filter { background: rgba(25,38,30,0.9); border: 1px solid rgba(255,152,0,0.4); color: #ff9800; font-size: 11px; font-weight: bold; padding: 6px; border-radius: 6px; cursor: pointer; text-align: center; }
+            .btn-adv-filter.active { background: #ff9800; color: #000; border-color: #fff; }
+
+            /* ไอคอนหน่วยรบวอร์รูมมีขอบเด่นชัด */
+            .huge-tactical-pin { font-size: 34px !important; text-align: center; filter: drop-shadow(0 0 4px #000) drop-shadow(0 2px 6px rgba(0,0,0,0.95)); cursor: pointer; line-height: 34px; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 50%; background: rgba(10,15,12,0.6); padding: 2px; }
+
             /* เข็มทิศดิจิทัลทางทหาร */
             .tactical-compass {
-                position: absolute; bottom: 85px; left: 15px; z-index: 1000;
+                position: absolute; bottom: 85px; right: 15px; z-index: 1000;
                 background: rgba(10, 16, 13, 0.92); backdrop-filter: blur(10px);
                 border: 1.5px solid var(--gold-accent); border-radius: 50%;
                 width: 75px; height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center;
                 box-shadow: 0 0 20px rgba(212,175,55,0.3); font-family: 'Share Tech Mono', monospace; color: #d4af37; font-weight: bold; font-size: 12px;
             }
             .compass-needle { font-size: 22px; transition: transform 0.2s; color: #ff3838; }
-
-            /* ปุ่มเปิด/ปิดเข็มทิศ */
             .compass-toggle-btn {
-                position: absolute; bottom: 170px; left: 15px; z-index: 1000;
+                position: absolute; bottom: 170px; right: 15px; z-index: 1000;
                 background: rgba(10,16,13,0.9); border: 1px solid var(--gold-accent); color: var(--gold-accent);
                 padding: 4px 8px; font-size: 10px; border-radius: 6px; cursor: pointer; font-family: 'Chakra Petch', sans-serif;
             }
@@ -596,8 +618,6 @@ def get_map_dashboard():
                 border: 1.5px solid var(--gold-accent); border-radius: 16px; padding: 22px;
                 box-shadow: 0 0 40px rgba(0,0,0,0.9); max-height: 90vh; overflow-y: auto;
             }
-
-            .huge-tactical-pin { font-size: 36px !important; text-align: center; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.95)); cursor: pointer; line-height: 36px; }
 
             .tactical-filter-bar {
                 position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
@@ -666,7 +686,7 @@ def get_map_dashboard():
             <img id="lightbox-img" src="" onclick="event.stopPropagation()">
         </div>
 
-        <!-- ฟอร์มปักหมุดส่งรายงาน 5 หัวข้อโดยตรงจากหน้าแผนที่รวม -->
+        <!-- ฟอร์มปักหมุดส่งรายงาน 5 หัวข้อ -->
         <div id="map-report-modal">
             <div class="map-report-box">
                 <div style="font-size:16px; font-weight:bold; color:var(--gold-accent); margin-bottom:12px; border-bottom:1px solid #d4af37; padding-bottom:6px; display:flex; justify-content:space-between;">
@@ -727,69 +747,89 @@ def get_map_dashboard():
             <button type="button" onclick="searchDashboardLocation()">ค้นหา</button>
         </div>
 
-        <!-- แผงวอร์รูมแบบพับเก็บได้ -->
-        <div class="warroom-panel" id="warroom_panel" style="display: none;">
-            <div class="warroom-title" onclick="toggleWarroomPanel()">
-                <span>🛡️ วอร์รูม & เขตการรบ</span>
-                <span id="warroom_toggle_icon">▼ พับเก็บ</span>
-            </div>
-            <div class="warroom-content">
-                <div class="section-label">📌 เลือกไอคอนหน่วยกำลังทหาร:</div>
-                <div class="unit-selector-grid">
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🛡️', 'ฐานที่มั่น', this)" title="ฐานที่มั่น">🛡️</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '⚔️', 'จุดปะทะ', this)" title="จุดปะทะ">⚔️</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🎯', 'เป้าหมาย', this)" title="เป้าหมาย">🎯</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '⚠️', 'ภัยคุกคาม', this)" title="ภัยคุกคาม">⚠️</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🚁', 'ฮ. ยุทธวิธี', this)" title="ฮ. ยุทธวิธี">🚁</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '✈️', 'เครื่องบินรบ', this)" title="เครื่องบินรบ">✈️</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🚙', 'รถหุ้มเกราะ', this)" title="รถหุ้มเกราะ">🚙</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🚒', 'รถพยาบาล', this)" title="รถพยาบาล">🚒</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '⛺', 'จุดตรวจ', this)" title="จุดตรวจ">⛺</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '💧', 'เสบียง', this)" title="เสบียง">💧</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '📡', 'สื่อสาร', this)" title="สื่อสาร">📡</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🚶', 'หมวดเดินเท้า', this)" title="หมวดเดินเท้า">🚶</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '💥', 'จุดระเบิด', this)" title="จุดระเบิด">💥</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🚩', 'จุดนัดพบ', this)" title="จุดนัดพบ">🚩</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '⚓', 'ฐานทัพเรือ', this)" title="ฐานทัพเรือ">⚓</div>
-                    <div class="unit-btn" onclick="selectWarTool('UNIT', '🪖', 'กองกำลังพล', this)" title="กองกำลังพล">🪖</div>
+        <!-- แผงควบคุมทั้งหมดรวมอยู่ที่ฝั่งซ้าย (พับเก็บได้) -->
+        <div class="left-sidebar-container" id="left_sidebar" style="display: none;">
+            
+            <!-- 1. แผงวอร์รูมวางแผน -->
+            <div class="warroom-panel" id="warroom_panel">
+                <div class="warroom-title" onclick="toggleWarroomPanel()">
+                    <span>🛡️ วอร์รูม & เขตการรบ</span>
+                    <span id="warroom_toggle_icon">▼ พับเก็บ</span>
                 </div>
+                <div class="warroom-content">
+                    <div class="section-label">📌 เลือกไอคอนหน่วยกำลังทหาร (ไม่ซ้ำ):</div>
+                    <div class="unit-selector-grid">
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🪖', 'กองกำลังพล', this)" title="กองกำลังพล">🪖</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚀', 'ปืนใหญ่/จรวด', this)" title="ปืนใหญ่">🚀</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🛑', 'จุดสกัด', this)" title="จุดสกัด">🛑</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⚡', 'หน่วยจู่โจม', this)" title="หน่วยจู่โจม">⚡</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '✈️', 'เครื่องบินรบ', this)" title="เครื่องบินรบ">✈️</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚙', 'รถหุ้มเกราะ', this)" title="รถหุ้มเกราะ">🚙</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🚒', 'รถพยาบาล', this)" title="รถพยาบาล">🚒</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⚓', 'ฐานทัพเรือ', this)" title="ฐานทัพเรือ">⚓</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🧱', 'แนวป้องกัน', this)" title="แนวป้องกัน">🧱</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '⛽', 'คลังเชื้อเพลิง', this)" title="คลังเชื้อเพลิง">⛽</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '☣️', 'สารเคมี/ชีวะ', this)" title="สารเคมี">☣️</div>
+                        <div class="unit-btn" onclick="selectWarTool('UNIT', '🏁', 'จุดหมายปลายทาง', this)" title="จุดหมาย">🏁</div>
+                    </div>
 
-                <div class="section-label" style="margin-top:6px;">🎨 เลือกสีเขตแนวรบ:</div>
-                <div class="color-palette">
-                    <div class="color-dot active" style="background:#ff3838;" onclick="setDrawColor('#ff3838', this)"></div>
-                    <div class="color-dot" style="background:#2196f3;" onclick="setDrawColor('#2196f3', this)"></div>
-                    <div class="color-dot" style="background:#00ffcc;" onclick="setDrawColor('#00ffcc', this)"></div>
-                    <div class="color-dot" style="background:#d4af37;" onclick="setDrawColor('#d4af37', this)"></div>
-                    <div class="color-dot" style="background:#ff9800;" onclick="setDrawColor('#ff9800', this)"></div>
-                </div>
+                    <div class="section-label" style="margin-top:6px;">🎨 เลือกสีเขตแนวรบ:</div>
+                    <div class="color-palette">
+                        <div class="color-dot active" style="background:#ff3838;" onclick="setDrawColor('#ff3838', this)"></div>
+                        <div class="color-dot" style="background:#2196f3;" onclick="setDrawColor('#2196f3', this)"></div>
+                        <div class="color-dot" style="background:#00ffcc;" onclick="setDrawColor('#00ffcc', this)"></div>
+                        <div class="color-dot" style="background:#d4af37;" onclick="setDrawColor('#d4af37', this)"></div>
+                        <div class="color-dot" style="background:#ff9800;" onclick="setDrawColor('#ff9800', this)"></div>
+                    </div>
 
-                <div class="section-label" style="margin-top:6px;">📐 เครื่องมือวาด (ปรับขนาดได้):</div>
-                <div class="draw-tools-row">
-                    <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'LINE', 'เส้นทาง', this)">📏 เส้นทาง</button>
-                    <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'CIRCLE', 'วงกลม', this)">⭕ วงกลม</button>
-                    <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'RECT', 'สี่เหลี่ยม', this)">⬛ สี่เหลี่ยม</button>
-                </div>
+                    <div class="section-label" style="margin-top:6px;">📐 เครื่องมือวาด (ปรับขนาดได้):</div>
+                    <div class="draw-tools-row">
+                        <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'LINE', 'เส้นทาง', this)">📏 เส้นทาง</button>
+                        <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'CIRCLE', 'วงกลม', this)">⭕ วงกลม</button>
+                        <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'RECT', 'สี่เหลี่ยม', this)">⬛ สี่เหลี่ยม</button>
+                    </div>
 
-                <div class="warroom-actions">
-                    <button type="button" class="btn-war btn-mode" onclick="toggleAddMode()" id="mode_toggle_btn">โหมดวาง: เปิด</button>
-                    <button type="button" class="btn-war btn-save-plan" onclick="saveWarPlan()">💾 บันทึก</button>
-                    <button type="button" class="btn-war btn-clear-plan" onclick="clearWarUnits()">🗑️ ล้าง</button>
+                    <div class="warroom-actions">
+                        <button type="button" class="btn-war btn-mode" onclick="toggleAddMode()" id="mode_toggle_btn">โหมดวาง: เปิด</button>
+                        <button type="button" class="btn-war btn-save-plan" onclick="saveWarPlan()">💾 บันทึกแผน</button>
+                        <button type="button" class="btn-war btn-clear-plan" onclick="clearWarUnits()">🗑️ ล้างกระดาน</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- แผงสภาพอากาศทางทหารแบบพับเก็บได้ -->
-        <div class="weather-panel" id="weather_panel" style="display: none;">
-            <div class="weather-title" onclick="toggleWeatherPanel()">
-                <span>⛅ สภาพอากาศ & แรงลม</span>
-                <span id="weather_toggle_icon">▼ พับเก็บ</span>
+            <!-- 2. แผงสภาพอากาศทางทหาร (เน้นฝนตก) -->
+            <div class="weather-panel" id="weather_panel">
+                <div class="weather-title" onclick="toggleWeatherPanel()">
+                    <span>⛅ สภาพอากาศ & โอกาสฝนตก</span>
+                    <span id="weather_toggle_icon">▼ พับเก็บ</span>
+                </div>
+                <div class="weather-content">
+                    <div class="weather-val" id="w_temp">🌡️ อุณหภูมิ: กำลังโหลด...</div>
+                    <div class="weather-val" id="w_rain">🌧️ โอกาสฝนตก: กำลังวิเคราะห์...</div>
+                    <div class="weather-val" id="w_wind">💨 แรงลมและความเร็ว: กำลังโหลด...</div>
+                    <div class="weather-val" id="w_impact" style="color:#00ffcc; font-size:11px; margin-top:4px;">⚡ พร้อมประเมินผลกระทบยุทธวิธี</div>
+                </div>
             </div>
-            <div class="weather-content">
-                <div class="weather-val" id="w_temp">🌡️ อุณหภูมิ: กำลังโหลด...</div>
-                <div class="weather-val" id="w_wind">💨 แรงลม: กำลังโหลด...</div>
-                <div class="weather-val" id="w_vis">👁️ ทัศนวิสัย: ดีเยี่ยม (10+ กม.)</div>
-                <div class="weather-val" id="w_impact" style="color:#00ffcc; font-size:11px; margin-top:4px;">⚡ เหมาะสำหรับปฏิบัติการทางอากาศและภาคพื้น</div>
+
+            <!-- 3. แผงกรองข้อมูลฉุกเฉินขั้นสูง -->
+            <div class="advanced-filter-panel" id="adv_filter_panel">
+                <div class="filter-title" onclick="toggleAdvFilterPanel()">
+                    <span>🚨 กรองข้อมูลฉุกเฉินทางยุทธวิธี</span>
+                    <span id="filter_toggle_icon">▼ พับเก็บ</span>
+                </div>
+                <div class="filter-content">
+                    <div class="section-label">เลือกประเภทภัยคุกคาม / สถานการณ์เร่งด่วน:</div>
+                    <div class="filter-grid">
+                        <button type="button" class="btn-adv-filter active" onclick="applyAdvFilter('ALL', this)">🌐 ทั้งหมด</button>
+                        <button type="button" class="btn-adv-filter" onclick="applyAdvFilter('⚔️', this)">⚔️ ปะทะ</button>
+                        <button type="button" class="btn-adv-filter" onclick="applyAdvFilter('⚠️', this)">⚠️ IED/ภัย</button>
+                        <button type="button" class="btn-adv-filter" onclick="applyAdvFilter('🛡️', this)">🛡️ ฐานที่มั่น</button>
+                        <button type="button" class="btn-adv-filter" onclick="applyAdvFilter('🚁', this)">🚁 ลาน ฮ.</button>
+                        <button type="button" class="btn-adv-filter" onclick="applyAdvFilter('🎯', this)">🎯 เป้าหมาย</button>
+                    </div>
+                </div>
             </div>
+
         </div>
 
         <!-- ปุ่มเปิด/ปิดเข็มทิศ -->
@@ -810,40 +850,41 @@ def get_map_dashboard():
             </select>
         </div>
 
+        <!-- แถบกรองข้อมูลด้านล่าง พร้อมตัวนับจำนวนและกดซูมพุ่งไปยังจุดปักหมุด -->
         <div class="tactical-filter-bar" id="filter_bar" style="display: none;">
-            <div class="filter-chip active" onclick="applyTacticalFilter('ALL', this)">
+            <div class="filter-chip active" onclick="applyQuickFilter('ALL', this)">
                 <span>🌐 ทั้งหมด</span>
                 <span class="filter-count" id="count_ALL">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('🎯', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('🎯', this)">
                 <span>🎯 เป้าหมาย</span>
                 <span class="filter-count" id="count_🎯">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('⚔️', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('⚔️', this)">
                 <span>⚔️ จุดปะทะ</span>
                 <span class="filter-count" id="count_⚔️">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('🛡️', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('🛡️', this)">
                 <span>🛡️ ฐานที่มั่น</span>
                 <span class="filter-count" id="count_🛡️">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('⚠️', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('⚠️', this)">
                 <span>⚠️ วัตถุต้องสงสัย</span>
                 <span class="filter-count" id="count_⚠️">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('🚁', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('🚁', this)">
                 <span>🚁 ลาน ฮ.</span>
                 <span class="filter-count" id="count_🚁">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('⛺', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('⛺', this)">
                 <span>⛺ จุดตรวจ</span>
                 <span class="filter-count" id="count_⛺">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('💧', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('💧', this)">
                 <span>💧 แหล่งเสบียง</span>
                 <span class="filter-count" id="count_💧">0</span>
             </div>
-            <div class="filter-chip" onclick="applyTacticalFilter('📡', this)">
+            <div class="filter-chip" onclick="applyQuickFilter('📡', this)">
                 <span>📡 สถานีสื่อสาร</span>
                 <span class="filter-count" id="count_📡">0</span>
             </div>
@@ -862,8 +903,8 @@ def get_map_dashboard():
             let searchMarker = null;
 
             let currentToolType = 'UNIT';
-            let selectedWarEmoji = '🛡️';
-            let selectedToolName = 'ฐานที่มั่น';
+            let selectedWarEmoji = '🪖';
+            let selectedToolName = 'กองกำลังพล';
             let activeDrawShape = 'LINE';
             let activeColor = '#ff3838';
             let isWarModeActive = true;
@@ -884,23 +925,25 @@ def get_map_dashboard():
             mapLayersGroup.addTo(map);
             warUnitsLayer.addTo(map);
 
-            // พับเก็บแผงวอร์รูม
+            // พับเก็บแผงต่างๆ
             function toggleWarroomPanel() {
                 const panel = document.getElementById('warroom_panel');
                 const icon = document.getElementById('warroom_toggle_icon');
                 panel.classList.toggle('collapsed');
                 icon.innerText = panel.classList.contains('collapsed') ? "▶ ขยาย" : "▼ พับเก็บ";
             }
-
-            // พับเก็บแผงสภาพอากาศ
             function toggleWeatherPanel() {
                 const panel = document.getElementById('weather_panel');
                 const icon = document.getElementById('weather_toggle_icon');
                 panel.classList.toggle('collapsed');
                 icon.innerText = panel.classList.contains('collapsed') ? "▶ ขยาย" : "▼ พับเก็บ";
             }
-
-            // เปิด/ปิดเข็มทิศ
+            function toggleAdvFilterPanel() {
+                const panel = document.getElementById('adv_filter_panel');
+                const icon = document.getElementById('filter_toggle_icon');
+                panel.classList.toggle('collapsed');
+                icon.innerText = panel.classList.contains('collapsed') ? "▶ ขยาย" : "▼ พับเก็บ";
+            }
             function toggleCompass() {
                 isCompassVisible = !isCompassVisible;
                 document.getElementById('tactical_compass').style.display = isCompassVisible ? 'flex' : 'none';
@@ -939,7 +982,7 @@ def get_map_dashboard():
                 btn.style.background = isWarModeActive ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.1)";
             }
 
-            // ระบบคลิกบนแผนที่ (วางแผนผังได้ทันที ไม่ต้องใส่รหัส)
+            // ระบบคลิกวางแผนผัง (ลบทีละตัวได้ทันที ไม่ต้องใส่รหัส)
             map.on('click', function(e) {
                 if (!isWarModeActive) return;
                 const lat = e.latlng.lat;
@@ -986,10 +1029,28 @@ def get_map_dashboard():
                 }
             });
 
-            // เปิดฟอร์มส่งรายงาน 5 หัวข้อจากพิกัดแผนที่
+            function saveWarPlan() {
+                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการบันทึกแผนผัง (wisarut):");
+                if (pass === "wisarut") { alert('✅ บันทึกแผนผังการรบเรียบร้อยแล้ว'); }
+                else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
+            }
+
+            function deleteSingleUnitDirect(btn) {
+                btn.closest('.leaflet-popup')._source.remove();
+            }
+
+            function clearWarUnits() {
+                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการล้างแผนผังทั้งหมด (wisarut):");
+                if (pass === "wisarut") {
+                    warUnitsLayer.clearLayers();
+                    drawingPoints = [];
+                    alert('✅ ล้างแผนผังทั้งหมดสำเร็จ');
+                } else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
+            }
+
             function openMapReportAt(lat, lng) {
                 selectedMapLatLng = { lat, lng };
-                document.getElementById('m_coords',).value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                document.getElementById('m_coords').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                 document.getElementById('map-report-modal').classList.add('show');
             }
             function closeMapReportModal() { document.getElementById('map-report-modal').classList.remove('show'); }
@@ -1000,20 +1061,14 @@ def get_map_dashboard():
                 const inc = document.getElementById('m_incident').value;
                 const act = document.getElementById('m_action').value;
                 const icon = document.getElementById('m_tactical_icon').value;
-
                 if (!pass || !sit) { alert('กรุณากรอกรหัสผ่านและสถานการณ์'); return; }
-
+                
                 const fileInput = document.getElementById('m_file_input');
-                let imgB64 = [];
                 if (fileInput.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        await sendReportAPI(pass, sit, inc, act, icon, [e.target.result]);
-                    };
+                    reader.onload = async function(e) { await sendReportAPI(pass, sit, inc, act, icon, [e.target.result]); };
                     reader.readAsDataURL(fileInput.files[0]);
-                } else {
-                    await sendReportAPI(pass, sit, inc, act, icon, []);
-                }
+                } else { await sendReportAPI(pass, sit, inc, act, icon, []); }
             }
 
             async function sendReportAPI(pass, sit, inc, act, icon, imgs) {
@@ -1022,55 +1077,35 @@ def get_map_dashboard():
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ passcode: pass, situation: sit, incident: inc, action: act, latitude: selectedMapLatLng.lat, longitude: selectedMapLatLng.lng, radius_meters: 0, mgrs: convertToMGRS(selectedMapLatLng.lat, selectedMapLatLng.lng), tactical_icon: icon, images: imgs })
                     });
-                    if (res.ok) {
-                        alert('✅ ส่งรายงานยุทธวิธีสำเร็จ แจ้งเตือนเข้ากลุ่ม LINE แล้ว');
-                        closeMapReportModal();
-                        verifyAdminKey();
-                    } else { alert('❌ รหัสผ่านไม่ถูกต้อง (ใช้ phantom2)'); }
-                } catch(e) { alert('เกิดข้อผิดพลาดในการส่งข้อมูล'); }
+                    if (res.ok) { alert('✅ ส่งรายงานยุทธวิธีสำเร็จ!'); closeMapReportModal(); verifyAdminKey(); }
+                    else { alert('❌ รหัสผ่านไม่ถูกต้อง (ใช้ phantom2)'); }
+                } catch(e) { alert('เกิดข้อผิดพลาด'); }
             }
 
-            // ฟังก์ชันบันทึกแผนผังด้วยรหัสผ่าน wisarut
-            function saveWarPlan() {
-                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการบันทึกแผนผัง (wisarut):");
-                if (pass === "wisarut") { alert('✅ บันทึกแผนผังการรบเรียบร้อยแล้ว'); }
-                else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
-            }
-
-            // ฟังก์ชันลบทีละรายการทันที (ไม่ต้องกรอกรหัส) ตามต้องการ
-            function deleteSingleUnitDirect(btn) {
-                btn.closest('.leaflet-popup')._source.remove();
-                alert('✅ ลบรายการสำเร็จ');
-            }
-
-            // ฟังก์ชันล้างทั้งหมดด้วยรหัสผ่าน wisarut
-            function clearWarUnits() {
-                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการล้างแผนผังทั้งหมด (wisarut):");
-                if (pass === "wisarut") {
-                    warUnitsLayer.clearLayers();
-                    drawingPoints = [];
-                    alert('✅ ล้างแผนผังทั้งหมดสำเร็จ');
-                } else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
-            }
-
-            // ดึงสภาพอากาศทางทหาร Real-time ตามพิกัดกลางแผนที่
+            // ดึงสภาพอากาศแม่นยำ (เน้นโอกาสฝนตกและแรงลม)
             async function fetchTacticalWeather(lat, lon) {
                 try {
-                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=precipitation_probability`);
                     const data = await res.json();
                     if (data && data.current_weather) {
                         const cw = data.current_weather;
                         document.getElementById('w_temp').innerText = `🌡️ อุณหภูมิ: ${cw.temperature} °C`;
                         document.getElementById('w_wind').innerText = `💨 แรงลม: ${cw.windspeed} กม./ชม. (ทิศ ${cw.winddirection}°)`;
                         
-                        let impact = "⚡ เหมาะสำหรับปฏิบัติการทั่วไป";
-                        if (cw.windspeed > 30) impact = "⚠️ ลมแรง! ส่งผลต่อโดรนและปืนใหญ่";
+                        let rainChance = "ต่ำ (< 10%)";
+                        if (data.hourly && data.hourly.precipitation_probability) {
+                            rainChance = data.hourly.precipitation_probability[0] + " %";
+                        }
+                        document.getElementById('w_rain').innerText = `🌧️ โอกาสฝนตก: ${rainChance}`;
+
+                        let impact = "⚡ สภาพอากาศเหมาะสมสำหรับปฏิบัติการ";
+                        if (parseInt(rainChance) > 50) impact = "⚠️ ฝนตกหนัก! ทัศนวิสัยต่ำ การเคลื่อนพลลำบาก";
+                        else if (cw.windspeed > 35) impact = "⚠️ ลมแรงจัด! ระวังการใช้อากาศยานและปืนใหญ่";
                         document.getElementById('w_impact').innerText = impact;
                     }
                 } catch(e) {}
             }
 
-            // อัปเดตเข็มทิศและสภาพอากาศเมื่อแผนที่ขยับ
             map.on('move', function() {
                 const c = map.getCenter();
                 fetchTacticalWeather(c.lat, c.lng);
@@ -1094,8 +1129,7 @@ def get_map_dashboard():
                     currentAdminKey = key;
                     document.getElementById('auth-gate').style.display = 'none';
                     document.getElementById('dash_search_box').style.display = 'flex';
-                    document.getElementById('warroom_panel').style.display = 'flex';
-                    document.getElementById('weather_panel').style.display = 'block';
+                    document.getElementById('left_sidebar').style.display = 'flex';
                     document.getElementById('compass_toggle_btn').style.display = 'block';
                     document.getElementById('tactical_compass').style.display = 'flex';
                     document.getElementById('filter_bar').style.display = 'flex';
@@ -1157,11 +1191,21 @@ def get_map_dashboard():
                 }
             }
 
-            function applyTacticalFilter(emoji, chip) {
+            // กรองข้อมูลด่วนด้านล่าง (กดแล้วซูมไปยังจุดที่เลือกอัตโนมัติ)
+            function applyQuickFilter(emoji, chip) {
                 activeFilter = emoji;
                 document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
-                renderMapData(emoji === 'ALL' ? currentReportsData : currentReportsData.filter(i => (i.detail || "").includes(emoji)), true);
+                const filtered = emoji === 'ALL' ? currentReportsData : currentReportsData.filter(i => (i.detail || "").includes(emoji));
+                renderMapData(filtered, true);
+            }
+
+            // กรองข้อมูลฉุกเฉินแบบละเอียดฝั่งซ้าย
+            function applyAdvFilter(emoji, btn) {
+                document.querySelectorAll('.btn-adv-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filtered = emoji === 'ALL' ? currentReportsData : currentReportsData.filter(i => (i.detail || "").includes(emoji));
+                renderMapData(filtered, true);
             }
 
             function formatCleanRedDetail(raw) {
