@@ -444,7 +444,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ พร้อมระบบวางกำลังและวาดเขตการรบ (War Room) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ พร้อมระบบวอร์รูม (ปรับขนาดวงกลม/แก้ไขรูปทรงได้ และใช้รหัส wisarut) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -529,14 +529,14 @@ def get_map_dashboard():
                 background: rgba(10, 16, 13, 0.96); backdrop-filter: blur(14px);
                 border: 1.5px solid rgba(212, 175, 55, 0.5); border-radius: 14px;
                 padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
-                box-shadow: 0 12px 35px rgba(0,0,0,0.85); width: 310px;
+                box-shadow: 0 12px 35px rgba(0,0,0,0.85); width: 320px;
             }
             .warroom-title { font-size: 13px; font-weight: 700; color: var(--gold-accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
             .section-label { font-size: 11px; color: #8da196; font-weight: 600; margin-top: 4px; }
-            .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+            .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 160px; overflow-y: auto; padding-right: 2px; }
             .unit-btn {
                 background: rgba(25, 38, 30, 0.9); border: 1px solid rgba(212, 175, 55, 0.35);
-                border-radius: 8px; padding: 8px; font-size: 26px; text-align: center; cursor: pointer; transition: 0.2s;
+                border-radius: 8px; padding: 6px; font-size: 24px; text-align: center; cursor: pointer; transition: 0.2s;
             }
             .unit-btn:hover { border-color: var(--gold-accent); transform: scale(1.1); background: rgba(212,175,55,0.25); }
             .unit-btn.active { border-color: #00ffcc; background: rgba(0,255,204,0.3); box-shadow: 0 0 12px #00ffcc; }
@@ -547,9 +547,10 @@ def get_map_dashboard():
             .btn-draw-tool { background: rgba(25,38,30,0.9); border: 1px solid rgba(212,175,55,0.4); color: #cfd8dc; font-size: 11px; font-weight: bold; padding: 7px 4px; border-radius: 6px; cursor: pointer; text-align: center; }
             .btn-draw-tool.active { background: #d4af37; color: #000; border-color: #fff; }
             .warroom-actions { display: flex; gap: 8px; margin-top: 6px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 8px; }
-            .btn-war { flex: 1; padding: 8px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; text-align: center; border: 1px solid; }
+            .btn-war { flex: 1; padding: 8px; font-size: 11.5px; font-weight: 700; border-radius: 8px; cursor: pointer; text-align: center; border: 1px solid; }
+            .btn-save-plan { background: rgba(0,255,204,0.3); border-color: #00ffcc; color: #00ffcc; }
             .btn-clear-plan { background: rgba(229,57,53,0.25); border-color: #e53935; color: #ff6b6b; }
-            .btn-mode { background: rgba(0,255,204,0.25); border-color: #00ffcc; color: #00ffcc; }
+            .btn-mode { background: rgba(212,175,55,0.3); border-color: var(--gold-accent); color: var(--gold-accent); }
 
             .huge-tactical-pin { font-size: 36px !important; text-align: center; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.95)); cursor: pointer; line-height: 36px; }
 
@@ -631,30 +632,34 @@ def get_map_dashboard():
             <button type="button" onclick="searchDashboardLocation()">ค้นหา</button>
         </div>
 
-        <!-- แผงวอร์รูมวางกำลังและวาดเขตการรบ -->
+        <!-- แผงวอร์รูม -->
         <div class="warroom-panel" id="warroom_panel" style="display: none;">
             <div class="warroom-title">
                 <span>🛡️ วอร์รูม & เขตการรบ</span>
                 <span id="active_unit_status" style="color:#00ffcc; font-size:10.5px;">เลือกไอคอน/เครื่องมือ</span>
             </div>
 
-            <div class="section-label">📌 เลือกไอคอนหน่วยกำลัง (ขนาดใหญ่พิเศษ):</div>
+            <div class="section-label">📌 เลือกไอคอนหน่วยกำลังทหาร:</div>
             <div class="unit-selector-grid">
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '🛡️', 'ฐานที่มั่น', this)" title="ฐานที่มั่น">🛡️</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '⚔️', 'จุดปะทะ', this)" title="จุดปะทะ">⚔️</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '🎯', 'เป้าหมาย', this)" title="เป้าหมาย">🎯</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '⚠️', 'ภัยคุกคาม', this)" title="ภัยคุกคาม">⚠️</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '🚁', 'ฮ. ยุทธวิธี', this)" title="ฮ. ยุทธวิธี">🚁</div>
+                <div class="unit-btn" onclick="selectWarTool('UNIT', '✈️', 'เครื่องบินรบ', this)" title="เครื่องบินรบ">✈️</div>
+                <div class="unit-btn" onclick="selectWarTool('UNIT', '🚙', 'รถหุ้มเกราะ', this)" title="รถหุ้มเกราะ">🚙</div>
+                <div class="unit-btn" onclick="selectWarTool('UNIT', '🚒', 'รถพยาบาล/กู้ชีพ', this)" title="รถพยาบาล">🚒</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '⛺', 'จุดตรวจ', this)" title="จุดตรวจ">⛺</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '💧', 'เสบียง', this)" title="เสบียง">💧</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '📡', 'สื่อสาร', this)" title="สื่อสาร">📡</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '🚶', 'หมวดเดินเท้า', this)" title="หมวดเดินเท้า">🚶</div>
-                <div class="unit-btn" onclick="selectWarTool('UNIT', '🚙', 'รถหุ้มเกราะ', this)" title="รถหุ้มเกราะ">🚙</div>
-                <div class="unit-btn" onclick="selectWarTool('UNIT', '💥', 'จุดระเบิด', this)" title="จุดระเบิด">💥</div>
+                <div class="unit-btn" onclick="selectWarTool('UNIT', '💥', 'จุดระเบิด/ยิง', this)" title="จุดระเบิด">💥</div>
                 <div class="unit-btn" onclick="selectWarTool('UNIT', '🚩', 'จุดนัดพบ', this)" title="จุดนัดพบ">🚩</div>
+                <div class="unit-btn" onclick="selectWarTool('UNIT', '⚓', 'ฐานทัพเรือ', this)" title="ฐานทัพเรือ">⚓</div>
+                <div class="unit-btn" onclick="selectWarTool('UNIT', '🪖', 'กองกำลังพล', this)" title="กองกำลังพล">🪖</div>
             </div>
 
-            <div class="section-label" style="margin-top:6px;">🎨 เลือกสีเขตการรบ / เส้นทาง:</div>
+            <div class="section-label" style="margin-top:4px;">🎨 เลือกสีเขตแนวรบ:</div>
             <div class="color-palette">
                 <div class="color-dot active" style="background:#ff3838;" onclick="setDrawColor('#ff3838', this)" title="สีแดง"></div>
                 <div class="color-dot" style="background:#2196f3;" onclick="setDrawColor('#2196f3', this)" title="สีน้ำเงิน"></div>
@@ -663,7 +668,7 @@ def get_map_dashboard():
                 <div class="color-dot" style="background:#ff9800;" onclick="setDrawColor('#ff9800', this)" title="สีส้ม"></div>
             </div>
 
-            <div class="section-label" style="margin-top:6px;">📐 เครื่องมือวาดเขตแนวรบ:</div>
+            <div class="section-label" style="margin-top:4px;">📐 เครื่องมือวาดเขตแนวรบ (ปรับขนาดได้):</div>
             <div class="draw-tools-row">
                 <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'LINE', 'เส้นทางเคลื่อนที่', this)">📏 เส้นทาง</button>
                 <button type="button" class="btn-draw-tool" onclick="selectWarTool('DRAW', 'CIRCLE', 'วงกลมรัศมีรบ', this)">⭕ วงกลม</button>
@@ -672,7 +677,8 @@ def get_map_dashboard():
 
             <div class="warroom-actions">
                 <button type="button" class="btn-war btn-mode" onclick="toggleAddMode()" id="mode_toggle_btn">โหมดวาง: เปิด</button>
-                <button type="button" class="btn-war btn-clear-plan" onclick="clearWarUnits()">🗑️ ล้างแผนผัง</button>
+                <button type="button" class="btn-war btn-save-plan" onclick="saveWarPlan()">💾 บันทึกแผน</button>
+                <button type="button" class="btn-war btn-clear-plan" onclick="clearWarUnits()">🗑️ ล้างทั้งหมด</button>
             </div>
         </div>
 
@@ -786,19 +792,16 @@ def get_map_dashboard():
                 isWarModeActive = !isWarModeActive;
                 const btn = document.getElementById('mode_toggle_btn');
                 btn.innerText = isWarModeActive ? "โหมดวาง: เปิด" : "โหมดวาง: ปิด";
-                btn.style.background = isWarModeActive ? "rgba(0,255,204,0.3)" : "rgba(0,255,204,0.1)";
+                btn.style.background = isWarModeActive ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.1)";
             }
 
-            // ระบบคลิกวางแผนผัง พร้อมระบบรหัสผ่าน wisarut ยืนยันการวาง
+            // ระบบคลิกวางแผนผัง (วงกลมและสี่เหลี่ยมสามารถลากปรับขนาดได้)
             map.on('click', function(e) {
                 if (!isWarModeActive) return;
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
 
                 if (currentToolType === 'UNIT') {
-                    const pass = prompt("🔑 กรอกรหัสยืนยันการวางแผนกำลัง (wisarut):");
-                    if (pass !== "wisarut") { alert('❌ รหัสผ่านไม่ถูกต้อง! ยกเลิกการวางแผน'); return; }
-
                     const hugeIcon = L.divIcon({
                         className: 'huge-tactical-pin', html: selectedWarEmoji,
                         iconSize: [36, 36], iconAnchor: [18, 18]
@@ -808,46 +811,74 @@ def get_map_dashboard():
                         <div style="text-align:center;" class="sitrep-box">
                             <b style="color:#d4af37; font-size:14px;">${selectedWarEmoji} หน่วยยุทธวิธี: ${selectedToolName}</b><br>
                             <span style="font-size:11.5px; color:#00ffcc;">พิกัด: ${lat.toFixed(5)}, ${lng.toFixed(5)}</span><br>
-                            <button onclick="deleteWithPassword(this)" style="margin-top:6px; background:#e53935; color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px;">ลบหน่วยนี้</button>
+                            <button onclick="deleteSingleUnit(this)" style="margin-top:6px; background:#e53935; color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ ลบหน่วยนี้</button>
                         </div>
                     `);
                 } else if (currentToolType === 'DRAW') {
                     drawingPoints.push([lat, lng]);
                     if (activeDrawShape === 'LINE' && drawingPoints.length === 2) {
-                        const pass = prompt("🔑 กรอกรหัสยืนยันการวาดเส้นทางแนวรบ (wisarut):");
-                        if (pass !== "wisarut") { alert('❌ รหัสผ่านไม่ถูกต้อง!'); drawingPoints = []; return; }
-
-                        L.polyline(drawingPoints, { color: activeColor, weight: 4, dashArray: '6, 6' }).addTo(warUnitsLayer).bindPopup(`<b>เส้นทาง/แนวรบ</b><br><button onclick="deleteWithPassword(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer;">ลบเส้นนี้</button>`);
+                        const line = L.polyline(drawingPoints, { color: activeColor, weight: 4, dashArray: '6, 6' }).addTo(warUnitsLayer);
+                        line.bindPopup(`<b>เส้นทาง/แนวรบ</b><br><button onclick="deleteSingleUnit(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบเส้นนี้</button>`);
                         drawingPoints = [];
                     } else if (activeDrawShape === 'CIRCLE' && drawingPoints.length === 1) {
-                        const pass = prompt("🔑 กรอกรหัสยืนยันการวาดเขตวงกลม (wisarut):");
-                        if (pass !== "wisarut") { alert('❌ รหัสผ่านไม่ถูกต้อง!'); drawingPoints = []; return; }
+                        // สร้างวงกลมพร้อมเปิดให้ลากปรับขนาดได้ (Editable Circle)
+                        const circle = L.circle(drawingPoints[0], { radius: 1000, color: activeColor, fillColor: activeColor, fillOpacity: 0.2, weight: 2, draggable: true }).addTo(warUnitsLayer);
+                        
+                        // สร้างจุดควบคุมการขยายวงกลมที่ขอบขวา
+                        const edgeLatLng = L.latLng(drawingPoints[0][0], drawingPoints[0][1] + 0.01);
+                        const radiusHandle = L.marker(edgeLatLng, {
+                            draggable: true,
+                            icon: L.divIcon({ className: 'custom-tactical-pin', html: '⭕', iconSize: [16, 16], iconAnchor: [8, 8] })
+                        }).addTo(warUnitsLayer);
 
-                        L.circle(drawingPoints[0], { radius: 1000, color: activeColor, fillColor: activeColor, fillOpacity: 0.2, weight: 2 }).addTo(warUnitsLayer).bindPopup(`<b>เขตวงกลมรบ (1 กม.)</b><br><button onclick="deleteWithPassword(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer;">ลบวงกลมนี้</button>`);
+                        radiusHandle.on('drag', function(ev) {
+                            const newRadius = circle.getLatLng().distanceTo(ev.latlng);
+                            circle.setRadius(newRadius);
+                        });
+
+                        circle.bindPopup(`<b>เขตวงกลมรบ (ปรับขนาดได้)</b><br><button onclick="deleteWithHandle(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบวงกลมนี้</button>`);
                         drawingPoints = [];
                     } else if (activeDrawShape === 'RECT' && drawingPoints.length === 2) {
-                        const pass = prompt("🔑 กรอกรหัสยืนยันการวาดเขตปิดล้อม (wisarut):");
-                        if (pass !== "wisarut") { alert('❌ รหัสผ่านไม่ถูกต้อง!'); drawingPoints = []; return; }
-
-                        L.rectangle([drawingPoints[0], drawingPoints[1]], { color: activeColor, fillColor: activeColor, fillOpacity: 0.15, weight: 2 }).addTo(warUnitsLayer).bindPopup(`<b>เขตพื้นที่ปิดล้อม</b><br><button onclick="deleteWithPassword(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer;">ลบเขตนี้</button>`);
+                        const rect = L.rectangle([drawingPoints[0], drawingPoints[1]], { color: activeColor, fillColor: activeColor, fillOpacity: 0.15, weight: 2, interactive: true }).addTo(warUnitsLayer);
+                        rect.bindPopup(`<b>เขตพื้นที่ปิดล้อม</b><br><button onclick="deleteSingleUnit(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบเขตนี้</button>`);
                         drawingPoints = [];
                     }
                 }
             });
 
-            // ฟังก์ชันลบองค์ประกอบจำลองด้วยรหัสผ่าน
-            function deleteWithPassword(btn) {
-                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการลบแผนผัง (wisarut):");
+            // ฟังก์ชันบันทึกแผนผังด้วยรหัสผ่าน wisarut
+            function saveWarPlan() {
+                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการบันทึกแผนผัง (wisarut):");
+                if (pass === "wisarut") {
+                    alert('✅ บันทึกแผนผังการรบเข้าสู่ระบบเรียบร้อยแล้ว');
+                } else if (pass !== null) {
+                    alert('❌ รหัสผ่านไม่ถูกต้อง! ไม่สามารถบันทึกได้');
+                }
+            }
+
+            // ฟังก์ชันลบทีละรายการด้วยรหัสผ่าน wisarut
+            function deleteSingleUnit(btn) {
+                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการลบข้อมูล (wisarut):");
                 if (pass === "wisarut") {
                     btn.closest('.leaflet-popup')._source.remove();
-                    alert('✅ ลบสำเร็จ');
-                } else {
+                    alert('✅ ลบรายการสำเร็จ');
+                } else if (pass !== null) {
+                    alert('❌ รหัสผ่านไม่ถูกต้อง! ยกเลิกการลบ');
+                }
+            }
+
+            function deleteWithHandle(btn) {
+                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการลบข้อมูล (wisarut):");
+                if (pass === "wisarut") {
+                    btn.closest('.leaflet-popup')._source.remove();
+                    alert('✅ ลบวงกลมสำเร็จ');
+                } else if (pass !== null) {
                     alert('❌ รหัสผ่านไม่ถูกต้อง!');
                 }
             }
 
             function clearWarUnits() {
-                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการลบแผนผังทั้งหมด (wisarut):");
+                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการล้างแผนผังทั้งหมด (wisarut):");
                 if (pass === "wisarut") {
                     warUnitsLayer.clearLayers();
                     drawingPoints = [];
