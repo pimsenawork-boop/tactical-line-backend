@@ -458,7 +458,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -595,7 +595,6 @@ def get_map_dashboard():
             
             .warroom-actions { display: flex; gap: 6px; margin-top: 6px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 6px; }
             .btn-war { flex: 1; padding: 7px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; border: 1px solid; }
-            .btn-save-plan { background: rgba(0,255,204,0.3); border-color: #00ffcc; color: #00ffcc; }
             .btn-clear-plan { background: rgba(229,57,53,0.25); border-color: #e53935; color: #ff6b6b; }
             .btn-mode { background: rgba(212,175,55,0.3); border-color: var(--gold-accent); color: var(--gold-accent); }
 
@@ -776,37 +775,31 @@ def get_map_dashboard():
                     <span id="fire_toggle_icon">▼ พับเก็บ</span>
                 </div>
                 <div class="fire-content">
-                    <div style="font-size:11px; color:#a2b5aa;">ชื่อเป้าหมาย / รหัสภารกิจ:</div>
-                    <input type="text" id="cff_target_name" class="cff-input-box" placeholder="เช่น เป้าหมายข้าศึก A1 / รังปืนกล">
-
                     <div style="font-size:11px; color:#a2b5aa; margin-top:4px;">เลือกอาวุธยิงสนับสนุน:</div>
                     <select id="fire_weapon_select" onchange="calculateBallistics()" class="cff-input-box" style="border-color:#ff3838;">
                         <option value="mortar_60">💣 ค. 60 มม. (ระยะ 70 - 3,500 ม.)</option>
                         <option value="mortar_81" selected>💣 ค. 81 มม. (ระยะ 100 - 5,600 ม.)</option>
                         <option value="mortar_120">💣 ค. 120 มม. (ระยะ 200 - 7,200 ม.)</option>
-                        <option value="arty_105">💥 ปืนใหญ่ 105 มม. (ระยะสูงสุด 11.5 กม.)</option>
-                        <option value="arty_155">💥 ปืนใหญ่ 155 มม. (ระยะสูงสุด 30 กม.)</option>
+                        <option value="arty_105">💥 ปืนใหญ่ 105 มม. (ระยะ 11.5 กม.)</option>
+                        <option value="arty_155">💥 ปืนใหญ่ 155 มม. (ระยะ 30 กม.)</option>
                     </select>
 
                     <div style="display:flex; gap:6px; margin-top:6px;">
-                        <button type="button" class="btn-draw-tool" id="btn_pick_gun" onclick="startPickFirePoint('GUN')" style="flex:1; border-color:#00ffcc; color:#00ffcc;">🎯 1. ที่ตั้งยิง (FOB)</button>
-                        <button type="button" class="btn-draw-tool" id="btn_pick_target" onclick="startPickFirePoint('TARGET')" style="flex:1; border-color:#ff3838; color:#ff3838;">🎯 2. เป้าหมาย (Auto)</button>
+                        <button type="button" class="btn-draw-tool" id="btn_pick_gun" onclick="startPickFirePoint('GUN')" style="flex:1; border-color:#00ffcc; color:#00ffcc;">📍 1. ปักที่ตั้งยิง</button>
+                        <button type="button" class="btn-draw-tool" id="btn_pick_target" onclick="startPickFirePoint('TARGET')" style="flex:1; border-color:#ff3838; color:#ff3838;">❌ 2. ปักที่หมาย</button>
                     </div>
 
-                    <div style="font-size:10.5px; color:#ff9800; margin-top:4px;">หรือกรอกพิกัดเป้าหมายเอง (Offline / Manual):</div>
+                    <div style="font-size:10.5px; color:#ff9800; margin-top:4px;">หรือกรอกพิกัดเป้าหมายเอง (Manual):</div>
                     <input type="text" id="manual_target_input" class="cff-input-box" placeholder="กรอก Lat,Lon หรือ MGRS" onchange="manualTargetCoords(this.value)">
 
-                    <div style="font-size:11px; color:#a2b5aa; margin-top:4px;">📷 แนบภาพถ่ายเป้าหมาย (1 รูป):</div>
-                    <input type="file" id="cff_target_img" accept="image/*" class="cff-input-box">
-
                     <div class="fire-row" style="margin-top:6px; border-top:1px dashed rgba(255,56,56,0.3); padding-top:4px;"><span>พิกัดยิง (FOB):</span><span class="fire-highlight" id="f_gun_mgrs">N/A</span></div>
-                    <div class="fire-row"><span>พิกัดเป้าหมาย:</span><span class="fire-highlight" id="f_target_mgrs">N/A</span></div>
+                    <div class="fire-row"><span>พิกัดที่หมาย:</span><span class="fire-highlight" id="f_target_mgrs">N/A</span></div>
                     <div class="fire-row"><span>ระยะยิงจริง:</span><span class="fire-highlight" id="f_dist">0 ม.</span></div>
                     <div class="fire-row"><span>มุมทิศ (Azimuth):</span><span class="fire-highlight" id="f_azimuth">0° (0 Mils)</span></div>
                     <div class="fire-row"><span>เวลาตกกระทบ (TOF):</span><span class="fire-highlight" id="f_tof">~0 วินาที</span></div>
                     <div class="fire-row"><span>สถานะระยะยิง:</span><span id="f_status" style="color:#8da196;">รอระบุพิกัด</span></div>
 
-                    <button type="button" class="btn-fire-action" onclick="sendFireSupportToLinePrompt()">🚀 ส่งพิกัดยิงเข้า LINE (wisarut)</button>
+                    <button type="button" class="btn-fire-action" onclick="sendFireSupportToLinePrompt()">🚀 ส่งคำสั่งยิงสนับสนุน (LINE)</button>
                 </div>
             </div>
 
@@ -851,7 +844,6 @@ def get_map_dashboard():
 
                     <div class="warroom-actions">
                         <button type="button" class="btn-war btn-mode" onclick="toggleAddMode()" id="mode_toggle_btn">โหมดวาง: เปิด</button>
-                        <button type="button" class="btn-war btn-save-plan" onclick="saveWarPlan()">💾 บันทึกแผน</button>
                         <button type="button" class="btn-war btn-clear-plan" onclick="clearWarUnits()">🗑️ ล้างกระดาน</button>
                     </div>
                 </div>
@@ -866,7 +858,7 @@ def get_map_dashboard():
                 <div class="weather-content">
                     <div class="weather-val" id="w_temp">🌡️ อุณหภูมิ: กำลังโหลด...</div>
                     <div class="weather-val" id="w_rain">🌧️ โอกาสฝนตก: กำลังวิเคราะห์...</div>
-                    <div class="weather-val" id="w_wind">💨 แรงลมและความเร็ว: กำลังโหลด...</div>
+                    <div class="weather-val" id="w_wind">💨 แรงลม: กำลังโหลด...</div>
                     <div class="weather-val" id="w_impact" style="color:#00ffcc; font-size:11px; margin-top:4px;">⚡ พร้อมประเมินผลกระทบยุทธวิธี</div>
                 </div>
             </div>
@@ -957,8 +949,8 @@ def get_map_dashboard():
             let gunLatLng = null;
             let targetLatLng = null;
             let currentBallisticsResult = null;
-            let gunMapMarker = null;
-            let targetMapMarker = null;
+            let cffTargetName = "เป้าหมายข้าศึก";
+            let cffTargetImage = null;
 
             const weaponRanges = {
                 mortar_60: { name: "ค. 60 มม.", min: 70, max: 3500, lethalRadius: 20, speed: 170 },
@@ -1012,11 +1004,9 @@ def get_map_dashboard():
                 if (type === 'GUN') {
                     document.getElementById('btn_pick_gun').style.background = '#00ffcc';
                     document.getElementById('btn_pick_gun').style.color = '#000';
-                    alert('📍 คลิกบนแผนที่เพื่อระบุ "จุดที่ตั้งยิง (FOB)"');
                 } else {
                     document.getElementById('btn_pick_target').style.background = '#ff3838';
                     document.getElementById('btn_pick_target').style.color = '#fff';
-                    alert('🎯 คลิกบนแผนที่เพื่อระบุ "เป้าหมายข้าศึก"');
                 }
             }
 
@@ -1041,7 +1031,7 @@ def get_map_dashboard():
                         }
                     }
                 } catch(e) {}
-                alert('⚠️ รูปแบบพิกัดไม่ถูกต้อง (รองรับ Lat,Lon หรือ MGRS)');
+                alert('⚠️ รูปแบบพิกัดไม่ถูกต้อง');
             }
 
             function calculateBearing(lat1, lon1, lat2, lon2) {
@@ -1060,32 +1050,48 @@ def get_map_dashboard():
                 if (gunLatLng) {
                     const gunMGRS = convertToMGRS(gunLatLng.lat, gunLatLng.lng);
                     document.getElementById('f_gun_mgrs').innerText = gunMGRS;
-                    gunMapMarker = L.marker([gunLatLng.lat, gunLatLng.lng], {
-                        icon: L.divIcon({ className: 'huge-tactical-pin', html: '🚀', iconSize: [36, 36], iconAnchor: [18, 18] })
-                    }).addTo(fireSupportLayer).bindPopup(`
+                    const gMarker = L.marker([gunLatLng.lat, gunLatLng.lng], {
+                        icon: L.divIcon({ className: 'huge-tactical-pin', html: '📍', iconSize: [36, 36], iconAnchor: [18, 18] })
+                    }).addTo(fireSupportLayer);
+                    gMarker.bindPopup(`
                         <div style="text-align:center;">
                             <b>ที่ตั้งยิง (FOB):</b><br>${gunMGRS}<br>
-                            <button onclick="removeGunPoint()" style="margin-top:4px; background:#e53935; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">🗑️ ลบที่ตั้งยิงนี้</button>
+                            <button onclick="removeGunPoint()" style="margin-top:4px; background:#e53935; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">🗑️ ลบที่ตั้งยิง</button>
                         </div>
                     `);
-                } else {
-                    document.getElementById('f_gun_mgrs').innerText = 'N/A';
-                }
+                } else { document.getElementById('f_gun_mgrs').innerText = 'N/A'; }
 
                 if (targetLatLng) {
                     const targetMGRS = convertToMGRS(targetLatLng.lat, targetLatLng.lng);
                     document.getElementById('f_target_mgrs').innerText = targetMGRS;
-                    targetMapMarker = L.marker([targetLatLng.lat, targetLatLng.lng], {
-                        icon: L.divIcon({ className: 'huge-tactical-pin', html: '🎯', iconSize: [36, 36], iconAnchor: [18, 18] })
-                    }).addTo(fireSupportLayer).bindPopup(`
-                        <div style="text-align:center;">
-                            <b>เป้าหมายข้าศึก:</b><br>${targetMGRS}<br>
-                            <button onclick="removeTargetPoint()" style="margin-top:4px; background:#e53935; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer;">🗑️ ลบเป้าหมายนี้</button>
+                    const tMarker = L.marker([targetLatLng.lat, targetLatLng.lng], {
+                        icon: L.divIcon({ className: 'huge-tactical-pin', html: '❌', iconSize: [36, 36], iconAnchor: [18, 18] })
+                    }).addTo(fireSupportLayer);
+                    
+                    const pContent = `
+                        <div style="min-width:220px;" class="sitrep-box">
+                            <div style="font-size:14px; font-weight:bold; color:#ff3838; margin-bottom:6px; border-bottom:1px solid #ff3838; padding-bottom:4px;">❌ ที่หมายยิงสนับสนุน</div>
+                            <div id="cff_t_view">
+                                <b>ชื่อที่หมาย:</b> <span id="cff_t_name_disp">${cffTargetName}</span><br>
+                                <b>พิกัด MGRS:</b> <span style="color:#00ffcc">${targetMGRS}</span><br>
+                                <img id="cff_t_img_disp" src="${cffTargetImage || ''}" style="display:${cffTargetImage ? 'block' : 'none'}; width:100%; border-radius:6px; margin-top:6px; border:1px solid #ff3838;">
+                                <div class="admin-tools">
+                                    <button class="btn-admin-act btn-edit" onclick="editCffTarget()">✏️ เพิ่มชื่อ/รูปเป้าหมาย</button>
+                                    <button class="btn-admin-act btn-del" onclick="removeTargetPoint()">🗑️ ลบที่หมาย</button>
+                                </div>
+                            </div>
+                            <div id="cff_t_edit" style="display:none;">
+                                ชื่อเป้าหมาย: <input type="text" id="cff_t_name_input" class="edit-box-input" value="${cffTargetName}"><br>
+                                อัปโหลดรูปเป้าหมาย: <input type="file" id="cff_t_img_input" class="edit-box-input" accept="image/*"><br>
+                                <div class="admin-tools">
+                                    <button class="btn-admin-act btn-save" onclick="saveCffTarget()">💾 บันทึก</button>
+                                    <button class="btn-admin-act btn-cancel" onclick="cancelCffTarget()">ยกเลิก</button>
+                                </div>
+                            </div>
                         </div>
-                    `);
-                } else {
-                    document.getElementById('f_target_mgrs').innerText = 'N/A';
-                }
+                    `;
+                    tMarker.bindPopup(pContent);
+                } else { document.getElementById('f_target_mgrs').innerText = 'N/A'; }
 
                 if (!gunLatLng || !targetLatLng) {
                     document.getElementById('f_dist').innerText = "0 ม.";
@@ -1098,7 +1104,6 @@ def get_map_dashboard():
 
                 const wKey = document.getElementById('fire_weapon_select').value;
                 const weapon = weaponRanges[wKey];
-
                 const p1 = L.latLng(gunLatLng.lat, gunLatLng.lng);
                 const p2 = L.latLng(targetLatLng.lat, targetLatLng.lng);
 
@@ -1147,66 +1152,58 @@ def get_map_dashboard():
                 };
             }
 
-            function removeGunPoint() {
-                gunLatLng = null;
-                calculateBallistics();
+            function editCffTarget() {
+                document.getElementById('cff_t_view').style.display = 'none';
+                document.getElementById('cff_t_edit').style.display = 'block';
             }
-            function removeTargetPoint() {
-                targetLatLng = null;
-                calculateBallistics();
+            function cancelCffTarget() {
+                document.getElementById('cff_t_view').style.display = 'block';
+                document.getElementById('cff_t_edit').style.display = 'none';
             }
-
-            async function sendFireSupportToLinePrompt() {
-                if (!currentBallisticsResult) {
-                    alert('⚠️ กรุณาระบุที่ตั้งยิงและเป้าหมายให้ครบถ้วนก่อนส่งข้อมูล');
-                    return;
-                }
-
-                const targetName = document.getElementById('cff_target_name').value.trim() || "เป้าหมายตรวจพบทางยุทธวิธี";
-                const pass = prompt("🔑 กรุณากรอกรหัสผ่านเพื่อยืนยันการส่งคำขอยิง (wisarut):");
-                if (pass === null) return;
-                if (pass !== "wisarut") {
-                    alert('❌ รหัสผ่านไม่ถูกต้อง! ปฏิเสธการส่งคำขอยิง');
-                    return;
-                }
-
-                const fileInput = document.getElementById('cff_target_img');
-                let imgData = null;
-
-                if (fileInput.files[0]) {
+            function saveCffTarget() {
+                cffTargetName = document.getElementById('cff_t_name_input').value || "เป้าหมายข้าศึก";
+                const fileInput = document.getElementById('cff_t_img_input');
+                if (fileInput.files && fileInput.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = async function(e) {
-                        imgData = e.target.result;
-                        await executeSendCFF(pass, targetName, imgData);
+                    reader.onload = (e) => {
+                        cffTargetImage = e.target.result;
+                        document.getElementById('cff_t_img_disp').src = cffTargetImage;
+                        document.getElementById('cff_t_img_disp').style.display = 'block';
+                        document.getElementById('cff_t_name_disp').innerText = cffTargetName;
+                        cancelCffTarget();
                     };
                     reader.readAsDataURL(fileInput.files[0]);
                 } else {
-                    await executeSendCFF(pass, targetName, null);
+                    document.getElementById('cff_t_name_disp').innerText = cffTargetName;
+                    cancelCffTarget();
                 }
             }
 
-            async function executeSendCFF(pass, targetName, imgB64) {
+            function removeGunPoint() { gunLatLng = null; calculateBallistics(); }
+            function removeTargetPoint() { targetLatLng = null; calculateBallistics(); }
+
+            async function sendFireSupportToLinePrompt() {
+                if (!currentBallisticsResult) {
+                    alert('⚠️ กรุณาระบุที่ตั้งยิงและเป้าหมายบนแผนที่ก่อน');
+                    return;
+                }
+                const pass = prompt("🔑 ยืนยันคำสั่งยิงสนับสนุน: กรุณากรอกรหัสความปลอดภัย (wisarut)");
+                if (pass === null) return;
+                if (pass !== "wisarut") { alert('❌ รหัสผ่านไม่ถูกต้อง! ปฏิเสธคำขอยิง'); return; }
+
                 try {
                     const payload = {
                         ...currentBallisticsResult,
                         passcode: pass,
-                        target_name: targetName,
-                        image_base64: imgB64
+                        target_name: cffTargetName,
+                        image_base64: cffTargetImage
                     };
                     const res = await fetch('/api/send-fire-support', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                     });
-                    if (res.ok) {
-                        alert('🚀 ส่งคำขอยิงสนับสนุน (CALL FOR FIRE) เข้ากลุ่ม LINE เรียบร้อยแล้ว!');
-                    } else {
-                        const err = await res.json();
-                        alert('❌ ' + (err.detail || 'การส่งคำขอยิงล้มเหลว'));
-                    }
-                } catch(e) {
-                    alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ');
-                }
+                    if (res.ok) alert('🚀 ส่งคำสั่งยิงสนับสนุน (CALL FOR FIRE) เข้ากลุ่ม LINE สำเร็จ!');
+                    else alert('❌ ส่งคำขอยิงล้มเหลว');
+                } catch(e) { alert('⚠️ เชื่อมต่อล้มเหลว'); }
             }
 
             function selectWarTool(type, val1, val2, element) {
@@ -1216,20 +1213,13 @@ def get_map_dashboard():
                 isWarModeActive = true;
                 document.getElementById('mode_toggle_btn').innerText = "โหมดวาง: เปิด";
 
-                if (type === 'UNIT') {
-                    selectedWarEmoji = val1;
-                    selectedToolName = val2;
-                } else if (type === 'DRAW') {
-                    activeDrawShape = val1;
-                    selectedToolName = val2;
-                    drawingPoints = [];
-                }
+                if (type === 'UNIT') { selectedWarEmoji = val1; selectedToolName = val2; } 
+                else if (type === 'DRAW') { activeDrawShape = val1; selectedToolName = val2; drawingPoints = []; }
             }
 
             function setDrawColor(color, element) {
                 document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-                element.classList.add('active');
-                activeColor = color;
+                element.classList.add('active'); activeColor = color;
             }
 
             function toggleAddMode() {
@@ -1239,23 +1229,24 @@ def get_map_dashboard():
                 btn.style.background = isWarModeActive ? "rgba(212,175,55,0.3)" : "rgba(212,175,55,0.1)";
             }
 
-            // ระบบคลิกบนแผนที่
+            function deleteWarLayer(id) {
+                if (warUnitsLayer.hasLayer(id)) warUnitsLayer.removeLayer(id);
+            }
+
+            // ระบบคลิกบนแผนที่ (กดปักหมุดแล้วลบได้อิสระ ไม่ต้องใส่รหัส)
             map.on('click', function(e) {
-                const lat = e.latlng.lat;
-                const lng = e.latlng.lng;
+                const lat = e.latlng.lat; const lng = e.latlng.lng;
 
                 if (pickFireMode === 'GUN') {
-                    gunLatLng = { lat, lng };
-                    pickFireMode = null;
-                    document.getElementById('btn_pick_gun').style.background = '';
-                    document.getElementById('btn_pick_gun').style.color = '#00ffcc';
+                    gunLatLng = { lat, lng }; pickFireMode = null;
+                    document.getElementById('btn_pick_gun').style.background = 'rgba(25,38,30,0.9)';
+                    document.getElementById('btn_pick_gun').style.color = '#cfd8dc';
                     calculateBallistics();
                     return;
                 } else if (pickFireMode === 'TARGET') {
-                    targetLatLng = { lat, lng };
-                    pickFireMode = null;
-                    document.getElementById('btn_pick_target').style.background = '';
-                    document.getElementById('btn_pick_target').style.color = '#ff3838';
+                    targetLatLng = { lat, lng }; pickFireMode = null;
+                    document.getElementById('btn_pick_target').style.background = 'rgba(25,38,30,0.9)';
+                    document.getElementById('btn_pick_target').style.color = '#cfd8dc';
                     calculateBallistics();
                     return;
                 }
@@ -1263,63 +1254,47 @@ def get_map_dashboard():
                 if (!isWarModeActive) return;
 
                 if (currentToolType === 'UNIT') {
-                    const hugeIcon = L.divIcon({
-                        className: 'huge-tactical-pin', html: selectedWarEmoji,
-                        iconSize: [36, 36], iconAnchor: [18, 18]
-                    });
-                    const marker = L.marker([lat, lng], { icon: hugeIcon, draggable: true }).addTo(warUnitsLayer);
+                    const marker = L.marker([lat, lng], {
+                        icon: L.divIcon({ className: 'huge-tactical-pin', html: selectedWarEmoji, iconSize: [36, 36], iconAnchor: [18, 18] }), draggable: true
+                    }).addTo(warUnitsLayer);
+                    const id = marker._leaflet_id;
                     marker.bindPopup(`
                         <div style="text-align:center;" class="sitrep-box">
                             <b style="color:#d4af37; font-size:14px;">${selectedWarEmoji} ${selectedToolName}</b><br>
                             <span style="font-size:11.5px; color:#00ffcc;">พิกัด: ${lat.toFixed(5)}, ${lng.toFixed(5)}</span><br>
-                            <button onclick="deleteSingleUnitDirect(this)" style="margin-top:6px; background:#e53935; color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ ลบหน่วยนี้</button>
-                            <button onclick="openMapReportAt(${lat}, ${lng})" style="margin-top:4px; display:block; width:100%; background:#d4af37; color:#000; font-weight:bold; border:none; padding:4px; border-radius:4px; cursor:pointer; font-size:11px;">🚨 ปักหมุดส่งรายงาน 5 หัวข้อ</button>
+                            <button onclick="deleteWarLayer(${id})" style="margin-top:6px; background:#e53935; color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px;">🗑️ ลบหน่วยนี้</button>
+                            <button onclick="openMapReportAt(${lat}, ${lng})" style="margin-top:4px; display:block; width:100%; background:#d4af37; color:#000; font-weight:bold; border:none; padding:4px; border-radius:4px; cursor:pointer; font-size:11px;">🚨 ส่งรายงาน 5 หัวข้อจุดนี้</button>
                         </div>
                     `);
                 } else if (currentToolType === 'DRAW') {
                     drawingPoints.push([lat, lng]);
                     if (activeDrawShape === 'LINE' && drawingPoints.length === 2) {
-                        L.polyline(drawingPoints, { color: activeColor, weight: 4, dashArray: '6, 6' }).addTo(warUnitsLayer).bindPopup(`<b>เส้นทาง/แนวรบ</b><br><button onclick="deleteSingleUnitDirect(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบเส้นนี้</button>`);
+                        const line = L.polyline(drawingPoints, { color: activeColor, weight: 4, dashArray: '6, 6' }).addTo(warUnitsLayer);
+                        const id = line._leaflet_id;
+                        line.bindPopup(`<b>เส้นทาง/แนวรบ</b><br><button onclick="deleteWarLayer(${id})" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบเส้นนี้</button>`);
                         drawingPoints = [];
                     } else if (activeDrawShape === 'CIRCLE' && drawingPoints.length === 1) {
                         const circle = L.circle(drawingPoints[0], { radius: 1000, color: activeColor, fillColor: activeColor, fillOpacity: 0.2, weight: 2, draggable: true }).addTo(warUnitsLayer);
                         const edgeLatLng = L.latLng(drawingPoints[0][0], drawingPoints[0][1] + 0.01);
-                        const radiusHandle = L.marker(edgeLatLng, {
-                            draggable: true,
-                            icon: L.divIcon({ className: 'custom-tactical-pin', html: '⭕', iconSize: [16, 16], iconAnchor: [8, 8] })
-                        }).addTo(warUnitsLayer);
-
-                        radiusHandle.on('drag', function(ev) {
-                            const newRadius = circle.getLatLng().distanceTo(ev.latlng);
-                            circle.setRadius(newRadius);
-                        });
-
-                        circle.bindPopup(`<b>เขตวงกลมรบ (ลากปรับขนาดได้)</b><br><button onclick="deleteSingleUnitDirect(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบวงกลมนี้</button>`);
+                        const radiusHandle = L.marker(edgeLatLng, { draggable: true, icon: L.divIcon({ className: 'custom-tactical-pin', html: '⭕', iconSize: [16, 16], iconAnchor: [8, 8] }) }).addTo(warUnitsLayer);
+                        const id = circle._leaflet_id;
+                        const handleId = radiusHandle._leaflet_id;
+                        radiusHandle.on('drag', function(ev) { circle.setRadius(circle.getLatLng().distanceTo(ev.latlng)); });
+                        circle.bindPopup(`<b>เขตวงกลมรบ (ลาก ⭕ ปรับขนาดได้)</b><br><button onclick="deleteWarLayer(${id}); deleteWarLayer(${handleId});" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบวงกลมนี้</button>`);
                         drawingPoints = [];
                     } else if (activeDrawShape === 'RECT' && drawingPoints.length === 2) {
-                        L.rectangle([drawingPoints[0], drawingPoints[1]], { color: activeColor, fillColor: activeColor, fillOpacity: 0.15, weight: 2 }).addTo(warUnitsLayer).bindPopup(`<b>เขตพื้นที่ปิดล้อม</b><br><button onclick="deleteSingleUnitDirect(this)" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบเขตนี้</button>`);
+                        const rect = L.rectangle([drawingPoints[0], drawingPoints[1]], { color: activeColor, fillColor: activeColor, fillOpacity: 0.15, weight: 2 }).addTo(warUnitsLayer);
+                        const id = rect._leaflet_id;
+                        rect.bindPopup(`<b>เขตพื้นที่ปิดล้อม</b><br><button onclick="deleteWarLayer(${id})" style="background:#e53935; color:#fff; border:none; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px;">🗑️ ลบเขตนี้</button>`);
                         drawingPoints = [];
                     }
                 }
             });
 
-            function saveWarPlan() {
-                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการบันทึกแผนผัง (wisarut):");
-                if (pass === "wisarut") { alert('✅ บันทึกแผนผังการรบเรียบร้อยแล้ว'); }
-                else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
-            }
-
-            function deleteSingleUnitDirect(btn) {
-                btn.closest('.leaflet-popup')._source.remove();
-            }
-
             function clearWarUnits() {
-                const pass = prompt("🔑 กรอกรหัสผ่านเพื่อยืนยันการล้างแผนผังทั้งหมด (wisarut):");
-                if (pass === "wisarut") {
-                    warUnitsLayer.clearLayers();
-                    drawingPoints = [];
-                    alert('✅ ล้างแผนผังทั้งหมดสำเร็จ');
-                } else if (pass !== null) { alert('❌ รหัสผ่านไม่ถูกต้อง!'); }
+                warUnitsLayer.clearLayers();
+                drawingPoints = [];
+                alert('✅ ล้างแผนผังทั้งหมดสำเร็จ');
             }
 
             function openMapReportAt(lat, lng) {
