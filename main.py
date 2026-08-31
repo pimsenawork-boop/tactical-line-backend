@@ -460,7 +460,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center พร้อมระบบ CFF แก้ไขใหม่ 100%) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (Combat Operations Center พร้อมระบบ CFF แก้ไขสมบูรณ์ 100%) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -564,8 +564,16 @@ def get_map_dashboard():
                 padding: 7px; border-radius: 6px; cursor: pointer; text-align: center; text-transform: uppercase; margin-top: 4px;
             }
             .btn-cff-pick {
-                background: rgba(25,38,30,0.9); border: 1px solid rgba(212,175,55,0.4);
-                color: #cfd8dc; font-size: 11px; font-weight: bold; padding: 7px 4px; border-radius: 6px; cursor: pointer; text-align: center;
+                background: rgba(25,38,30,0.9); border: 1.5px solid rgba(212,175,55,0.4);
+                color: #cfd8dc; font-size: 11px; font-weight: bold; padding: 8px 4px; border-radius: 6px; cursor: pointer; text-align: center; transition: 0.2s;
+            }
+            .btn-cff-pick.active-pick {
+                animation: pulseBorder 1.2s infinite; font-weight: bold;
+            }
+            @keyframes pulseBorder {
+                0% { transform: scale(1); box-shadow: 0 0 4px #fff; }
+                50% { transform: scale(1.03); box-shadow: 0 0 12px #fff; }
+                100% { transform: scale(1); box-shadow: 0 0 4px #fff; }
             }
             .cff-input-box {
                 background: rgba(0,0,0,0.7); border: 1px solid rgba(212,175,55,0.4); color: #fff;
@@ -848,20 +856,47 @@ def get_map_dashboard():
                 document.getElementById('compass_toggle_btn').innerText = isCompassVisible ? "🧭 ซ่อนเข็มทิศ" : "🧭 แสดงเข็มทิศ";
             }
 
-            // --- คอนโทรลเลอร์ระบบยิงสนับสนุน CFF ---
+            // --- คอนโทรลเลอร์ระบบยิงสนับสนุน CFF (ปรับปรุงใหม่ 100%) ---
             function startPickFirePoint(type) {
                 pickFireMode = type;
+                const btnGun = document.getElementById('btn_pick_gun');
+                const btnTarget = document.getElementById('btn_pick_target');
+
                 if (type === 'GUN') {
-                    document.getElementById('btn_pick_gun').style.background = '#00ffcc';
-                    document.getElementById('btn_pick_gun').style.color = '#000';
-                    document.getElementById('btn_pick_target').style.background = 'rgba(25,38,30,0.9)';
-                    document.getElementById('btn_pick_target').style.color = '#ff3838';
+                    btnGun.classList.add('active-pick');
+                    btnGun.style.background = '#00ffcc';
+                    btnGun.style.color = '#000';
+                    btnGun.innerText = '👉 แตะบนแผนที่ระบุที่ตั้งยิง';
+                    
+                    btnTarget.classList.remove('active-pick');
+                    btnTarget.style.background = 'rgba(25,38,30,0.9)';
+                    btnTarget.style.color = '#ff3838';
+                    btnTarget.innerText = '❌ 2. ปักที่หมาย';
                 } else {
-                    document.getElementById('btn_pick_target').style.background = '#ff3838';
-                    document.getElementById('btn_pick_target').style.color = '#fff';
-                    document.getElementById('btn_pick_gun').style.background = 'rgba(25,38,30,0.9)';
-                    document.getElementById('btn_pick_gun').style.color = '#00ffcc';
+                    btnTarget.classList.add('active-pick');
+                    btnTarget.style.background = '#ff3838';
+                    btnTarget.style.color = '#fff';
+                    btnTarget.innerText = '👉 แตะบนแผนที่ระบุเป้าหมาย';
+
+                    btnGun.classList.remove('active-pick');
+                    btnGun.style.background = 'rgba(25,38,30,0.9)';
+                    btnGun.style.color = '#00ffcc';
+                    btnGun.innerText = '📍 1. ปักที่ตั้งยิง';
                 }
+            }
+
+            function resetPickButtons() {
+                const btnGun = document.getElementById('btn_pick_gun');
+                const btnTarget = document.getElementById('btn_pick_target');
+                btnGun.classList.remove('active-pick');
+                btnGun.style.background = 'rgba(25,38,30,0.9)';
+                btnGun.style.color = '#00ffcc';
+                btnGun.innerText = '📍 1. ปักที่ตั้งยิง';
+
+                btnTarget.classList.remove('active-pick');
+                btnTarget.style.background = 'rgba(25,38,30,0.9)';
+                btnTarget.style.color = '#ff3838';
+                btnTarget.innerText = '❌ 2. ปักที่หมาย';
             }
 
             function manualTargetCoords(val) {
@@ -1080,7 +1115,7 @@ def get_map_dashboard():
                 } catch(e) { alert('⚠️ เชื่อมต่อล้มเหลว'); }
             }
 
-            // ระบบคลิกบนแผนที่ (เชื่อมตรงกับ CFF controller)
+            // ระบบคลิกบนแผนที่ (เชื่อมตรงกับ CFF และรีเซ็ตปุ่มอัตโนมัติ)
             map.on('click', function(e) {
                 const lat = e.latlng.lat; 
                 const lng = e.latlng.lng;
@@ -1088,15 +1123,13 @@ def get_map_dashboard():
                 if (pickFireMode === 'GUN') {
                     gunLatLng = { lat, lng }; 
                     pickFireMode = null;
-                    document.getElementById('btn_pick_gun').style.background = 'rgba(25,38,30,0.9)';
-                    document.getElementById('btn_pick_gun').style.color = '#00ffcc';
+                    resetPickButtons();
                     calculateBallistics();
                     return;
                 } else if (pickFireMode === 'TARGET') {
                     targetLatLng = { lat, lng }; 
                     pickFireMode = null;
-                    document.getElementById('btn_pick_target').style.background = 'rgba(25,38,30,0.9)';
-                    document.getElementById('btn_pick_target').style.color = '#ff3838';
+                    resetPickButtons();
                     calculateBallistics();
                     return;
                 }
@@ -1312,7 +1345,6 @@ def send_fire_support(payload: FireSupportPayload):
     if not target_id:
         raise HTTPException(status_code=400, detail="ไม่พบ Group ID ของ LINE")
 
-    # อัปโหลดรูปเป้าหมาย 1 รูป (ถ้ามี)
     uploaded_target_url = None
     if payload.image_base64:
         try:
