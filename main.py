@@ -647,7 +647,6 @@ def get_form():
                 }
             }
 
-            // ค้นหาพิกัด Lat,Lon / MGRS / ชื่อสถานที่
             async function searchLocation() {
                 const query = document.getElementById('map_search_input').value.trim();
                 if (!query) return;
@@ -791,7 +790,7 @@ def get_form():
     </html>
     """
 
-# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ (TACTICAL MAP DASHBOARD พร้อมระบบค้นหาพิกัด) ---
+# --- หน้าศูนย์รวมแผนที่ยุทธศาสตร์ พร้อมระบบวางกำลังยุทธวิธี (War Room Tactical Planner) ---
 @app.get("/map", response_class=HTMLResponse)
 def get_map_dashboard():
     return """
@@ -846,7 +845,6 @@ def get_map_dashboard():
             .header-bar h2 { font-size: 16px; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
             .header-bar p { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: #00ffcc; margin: 2px 0 0 0; }
 
-            /* แถบค้นหาพิกัดบนหน้าแดชบอร์ดแผนที่รวม */
             .dashboard-search-container {
                 position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000;
                 background: rgba(10, 16, 13, 0.95); backdrop-filter: blur(14px);
@@ -870,6 +868,27 @@ def get_map_dashboard():
                 border-radius: 10px; padding: 6px 12px; backdrop-filter: blur(8px);
             }
             .map-switch-top select { background: transparent; border: none; color: #d4af37; font-family: 'Chakra Petch', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; outline: none; }
+
+            /* --- วอร์รูมวางกำลังยุทธวิธี (Toolbar ด้านซ้ายล่าง/ขวาล่าง) --- */
+            .warroom-panel {
+                position: absolute; top: 80px; left: 15px; z-index: 1000;
+                background: rgba(10, 16, 13, 0.94); backdrop-filter: blur(12px);
+                border: 1.5px solid rgba(212, 175, 55, 0.4); border-radius: 12px;
+                padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.8); max-width: 280px;
+            }
+            .warroom-title { font-size: 12px; font-weight: 700; color: var(--gold-accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+            .unit-selector-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 180px; overflow-y: auto; padding-right: 2px; }
+            .unit-btn {
+                background: rgba(25, 38, 30, 0.9); border: 1px solid rgba(212, 175, 55, 0.3);
+                border-radius: 6px; padding: 6px; font-size: 18px; text-align: center; cursor: pointer; transition: 0.2s;
+            }
+            .unit-btn:hover { border-color: var(--gold-accent); transform: scale(1.08); background: rgba(212,175,55,0.2); }
+            .unit-btn.active { border-color: #00ffcc; background: rgba(0,255,204,0.25); box-shadow: 0 0 8px #00ffcc; }
+            .warroom-actions { display: flex; gap: 6px; margin-top: 4px; }
+            .btn-war { flex: 1; padding: 6px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; border: 1px solid; }
+            .btn-clear-plan { background: rgba(229,57,53,0.2); border-color: #e53935; color: #ff6b6b; }
+            .btn-mode { background: rgba(0,255,204,0.2); border-color: #00ffcc; color: #00ffcc; }
 
             .tactical-filter-bar {
                 position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
@@ -944,11 +963,36 @@ def get_map_dashboard():
             <p id="total_reports">กำลังโหลดพิกัดรายงานยุทธวิธี...</p>
         </div>
 
-        <!-- แถบค้นหาพิกัด Lat,Lon / MGRS / ชื่อสถานที่ บนแผนที่รวม -->
         <div class="dashboard-search-container" id="dash_search_box" style="display: none;">
             <span style="font-size:14px; margin-right:4px;">🔍</span>
             <input type="text" id="dash_search_input" placeholder="ค้นหา: พิกัด Lat,Lon / MGRS / ชื่อสถานที่..." onkeypress="if(event.key==='Enter') searchDashboardLocation()">
             <button type="button" onclick="searchDashboardLocation()">ค้นหา</button>
+        </div>
+
+        <!-- แผงควบคุมวอร์รูมวางกำลังยุทธวิธี (War Room Tactical Planner) -->
+        <div class="warroom-panel" id="warroom_panel" style="display: none;">
+            <div class="warroom-title">
+                <span>🛡️ วอร์รูมวางกำลัง</span>
+                <span id="active_unit_status" style="color:#00ffcc; font-size:10px;">เลือกไอคอนเพื่อวาง</span>
+            </div>
+            <div class="unit-selector-grid">
+                <div class="unit-btn" onclick="selectWarUnit('🛡️', 'ฐานมั่น', this)" title="ฐานที่มั่น">🛡️</div>
+                <div class="unit-btn" onclick="selectWarUnit('⚔️', 'จุดปะทะ', this)" title="จุดปะทะ">⚔️</div>
+                <div class="unit-btn" onclick="selectWarUnit('🎯', 'เป้าหมาย', this)" title="เป้าหมาย">🎯</div>
+                <div class="unit-btn" onclick="selectWarUnit('⚠️', 'ภัยคุกคาม', this)" title="ภัยคุกคาม">⚠️</div>
+                <div class="unit-btn" onclick="selectWarUnit('🚁', 'ฮ. ยุทธวิธี', this)" title="ฮ. ยุทธวิธี">🚁</div>
+                <div class="unit-btn" onclick="selectWarUnit('⛺', 'จุดตรวจ', this)" title="จุดตรวจ">⛺</div>
+                <div class="unit-btn" onclick="selectWarUnit('💧', 'เสบียง', this)" title="เสบียง">💧</div>
+                <div class="unit-btn" onclick="selectWarUnit('📡', 'สื่อสาร', this)" title="สื่อสาร">📡</div>
+                <div class="unit-btn" onclick="selectWarUnit('🚶', 'หมวดเดินเท้า', this)" title="หมวดเดินเท้า">🚶</div>
+                <div class="unit-btn" onclick="selectWarUnit('🚙', 'รถหุ้มเกราะ', this)" title="รถหุ้มเกราะ">🚙</div>
+                <div class="unit-btn" onclick="selectWarUnit('💥', 'จุดระเบิด/ยิง', this)" title="จุดระเบิด">💥</div>
+                <div class="unit-btn" onclick="selectWarUnit('🚩', 'จุดนัดพบ', this)" title="จุดนัดพบ">🚩</div>
+            </div>
+            <div class="warroom-actions">
+                <button type="button" class="btn-war btn-mode" onclick="toggleAddMode()" id="mode_toggle_btn">โหมดวาง: ปิด</button>
+                <button type="button" class="btn-war btn-clear-plan" onclick="clearWarUnits()">ล้างแผนผัง</button>
+            </div>
         </div>
 
         <div class="map-switch-top">
@@ -1002,13 +1046,19 @@ def get_map_dashboard():
         <div id="dashboard-map"></div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/dist/mgrs.min.js"></script>
         <script>
             let currentAdminKey = "";
             let currentReportsData = [];
             let activeFilter = "ALL";
             let mapLayersGroup = L.layerGroup();
+            let warUnitsLayer = L.layerGroup();
             let searchMarker = null;
+
+            // ตัวแปรระบบวางกำลังยุทธวิธี
+            let selectedWarEmoji = null;
+            let selectedWarName = "";
+            let isWarModeActive = false;
+            let customWarMarkers = [];
 
             const layers = {
                 google_sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }),
@@ -1021,6 +1071,59 @@ def get_map_dashboard():
             let activeLayer = layers.google_sat;
             activeLayer.addTo(map);
             mapLayersGroup.addTo(map);
+            warUnitsLayer.addTo(map);
+
+            // ฟังก์ชันเลือกไอคอนวางกำลัง
+            function selectWarUnit(emoji, name, element) {
+                document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+                element.classList.add('active');
+                selectedWarEmoji = emoji;
+                selectedWarName = name;
+                isWarModeActive = true;
+                document.getElementById('mode_toggle_btn').innerText = "โหมดวาง: เปิด";
+                document.getElementById('mode_toggle_btn').style.background = "rgba(0,255,204,0.4)";
+                document.getElementById('active_unit_status').innerText = `เลือก: ${emoji} ${name}`;
+            }
+
+            function toggleAddMode() {
+                isWarModeActive = !isWarModeActive;
+                const btn = document.getElementById('mode_toggle_btn');
+                if (isWarModeActive && !selectedWarEmoji) {
+                    selectedWarEmoji = '🛡️';
+                    selectedWarName = 'ฐานมั่น';
+                }
+                btn.innerText = isWarModeActive ? "โหมดวาง: เปิด" : "โหมดวาง: ปิด";
+                btn.style.background = isWarModeActive ? "rgba(0,255,204,0.4)" : "rgba(0,255,204,0.2)";
+            }
+
+            // คลิกบนแผนที่เพื่อวางไอคอนกำลังพลจำลอง
+            map.on('click', function(e) {
+                if (!isWarModeActive || !selectedWarEmoji) return;
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+
+                const customIcon = L.divIcon({
+                    className: 'custom-tactical-pin', html: selectedWarEmoji,
+                    iconSize: [24, 24], iconAnchor: [12, 12]
+                });
+
+                const marker = L.marker([lat, lng], { icon: customIcon, draggable: true }).addTo(warUnitsLayer);
+                marker.bindPopup(`
+                    <div style="text-align:center;" class="sitrep-box">
+                        <b style="color:#d4af37;">${selectedWarEmoji} หน่วย/จุดจำลอง: ${selectedWarName}</b><br>
+                        <span style="font-size:11px; color:#00ffcc;">พิกัด: ${lat.toFixed(5)}, ${lng.toFixed(5)}</span><br>
+                        <button onclick="this.closest('.leaflet-popup')._source.remove()" style="margin-top:6px; background:#e53935; color:#fff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-size:11px;">ลบจุดนี้</button>
+                    </div>
+                `);
+                customWarMarkers.push(marker);
+            });
+
+            function clearWarUnits() {
+                if (confirm("ต้องการลบหน่วยจำลองและแผนผังที่วางไว้ทั้งหมดหรือไม่?")) {
+                    warUnitsLayer.clearLayers();
+                    customWarMarkers = [];
+                }
+            }
 
             function changeDashboardLayer(k) {
                 if (layers[k]) {
@@ -1054,6 +1157,7 @@ def get_map_dashboard():
 
                     document.getElementById('auth-gate').style.display = 'none';
                     document.getElementById('dash_search_box').style.display = 'flex';
+                    document.getElementById('warroom_panel').style.display = 'flex';
                     document.getElementById('filter_bar').style.display = 'flex';
                     map.invalidateSize();
                     
@@ -1065,14 +1169,12 @@ def get_map_dashboard():
                 }
             }
 
-            // ค้นหาพิกัด Lat,Lon / MGRS / ชื่อสถานที่ บนแดชบอร์ดแผนที่รวม
             async function searchDashboardLocation() {
                 const query = document.getElementById('dash_search_input').value.trim();
                 if (!query) return;
 
                 if (searchMarker) { map.removeLayer(searchMarker); }
 
-                // 1. ตรวจสอบพิกัด GPS (Lat, Lon)
                 const latLonRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?)[,\s]+[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
                 if (latLonRegex.test(query)) {
                     const parts = query.split(/[\s,]+/);
@@ -1085,7 +1187,6 @@ def get_map_dashboard():
                     }
                 }
 
-                // 2. ตรวจสอบพิกัดทหาร MGRS
                 try {
                     const cleanMGRS = query.replace(/\s+/g, '').toUpperCase();
                     if (typeof mgrs !== 'undefined' && mgrs.toPoint) {
@@ -1098,7 +1199,6 @@ def get_map_dashboard():
                     }
                 } catch (e) {}
 
-                // 3. ค้นหาชื่อสถานที่
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=th`);
                     const data = await res.json();
